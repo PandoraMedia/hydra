@@ -1,0 +1,32 @@
+buildscript {
+    repositories {
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+            jcenter()
+        }
+    }
+    dependencies {
+        classpath 'com.gradle.publish:plugin-publish-plugin:0.9.10'
+        classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.10.0'
+    }
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+    }
+    apply plugin: 'java'
+    apply plugin: 'com.diffplug.gradle.spotless'
+//    apply plugin: 'signing'
+
+    spotless {
+        java {
+            indentWithSpaces(4)
+            removeUnusedImports()
+        }
+    }
+
+//    signing {
+//        sign configurations.archives
+//    }
+}

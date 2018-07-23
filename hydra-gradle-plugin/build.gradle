@@ -1,0 +1,12 @@
+apply plugin: "com.gradle.plugin-publish"
+
+dependencies {
+    compile gradleApi()
+
+    compile project(':hydra-client')
+
+    compile 'com.google.guava:guava:23.6-jre'
+    compile 'commons-beanutils:commons-beanutils:1.9.3'
+
+    testCompile 'junit:junit:4.12'
+}

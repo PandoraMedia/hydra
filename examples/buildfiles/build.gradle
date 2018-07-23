@@ -1,0 +1,61 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.pandora.hydra:hydra-gradle-plugin:1.6.5'
+    }
+}
+
+apply plugin: 'com.pandora.hydra'
+
+task integrationTest(type: Test) {
+    minHeapSize = "1g"
+    maxHeapSize = "6g"
+
+    outputs.upToDateWhen { false }
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+
+    ignoreFailures true
+
+    testLogging {
+        events 'passed', 'failed'
+    }
+
+    maxParallelForks = 10
+}
+
+task testReport(type: TestReport) {
+    destinationDir = file("$buildDir/reports/allTests")
+
+    if(!destinationDir.exists()) {
+        destinationDir.mkdir()
+    }
+
+    // Include the results from the `test` task in all subprojects
+    reportOn test, integrationTest
+}
+
+task unitTestReport(type: TestReport) {
+    destinationDir = file("$buildDir/reports/unitTest")
+    // Include the results from the `test` task in all subprojects
+    reportOn test
+}
+
+task integrationTestReport(type: TestReport) {
+    destinationDir = file("$buildDir/reports/integrationTest")
+    // Include the results from the `test` task in all subprojects
+    reportOn integrationTest
+}
+
+task allReport(dependsOn: ['unitTestReport', 'integrationTestReport', 'testReport'])
+
+test {
+    maxParallelForks = 8
+}
+
+hydra {
+    balancedTests = ['integrationTest']
+    balanceThreads true
+}

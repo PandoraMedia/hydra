@@ -1,0 +1,48 @@
+server:
+  port: 7019
+
+flyway:
+  locations: db/migration
+
+hydra:
+  rebalance_threshold: 30
+  partition:
+    strategy: affinity
+
+---
+spring:
+  profiles: file_repo
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+flyway:
+  enabled: false
+
+hydra:
+  repo: .repo
+
+---
+spring:
+  profiles: dev
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  datasource:
+    username: ${USER}
+    url: jdbc:postgresql://localhost:5432/hydra
+
+---
+spring:
+  profiles: docker
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  datasource:
+    username: hydra
+    url: jdbc:postgresql://remotehost:5432/hydra

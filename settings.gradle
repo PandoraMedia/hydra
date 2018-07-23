@@ -1,0 +1,5 @@
+rootProject.name = 'hydra'
+include 'hydra-client'
+include 'hydra-common'
+include 'hydra-server'
+include 'hydra-gradle-plugin'
