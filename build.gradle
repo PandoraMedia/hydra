@@ -7,7 +7,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.10.0'
-        classpath 'org.springframework.boot:spring-boot-gradle-plugin:2.0.3.RELEASE'
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:2.0.4.RELEASE'
     }
 }
 
@@ -38,15 +38,6 @@ configure([project(':hydra-client'), project(':hydra-common'), project('hydra-gr
 }
 
 configure (project(':hydra-server')) {
-    buildscript {
-        repositories {
-            mavenCentral()
-        }
-        dependencies {
-            classpath('org.springframework.boot:spring-boot-gradle-plugin:1.5.7.RELEASE')
-        }
-    }
-
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'war'
