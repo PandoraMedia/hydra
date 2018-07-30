@@ -2,7 +2,7 @@ server:
   port: 7019
 
 flyway:
-  locations: db/migration
+  locations: classpath:db/migration/{vendor}
 
 hydra:
   rebalance_threshold: 30
@@ -30,6 +30,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc.lob.non_contextual_creation: true
 
   datasource:
     username: ${USER}
@@ -42,6 +45,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc.lob.non_contextual_creation: true
 
   datasource:
     username: hydra

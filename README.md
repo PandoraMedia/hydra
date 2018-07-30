@@ -102,10 +102,16 @@ def findRootNode() {
     Jenkins jenkins = Jenkins.instance
     Node firstRootNode = jenkins.getNode('jenkins-ut01')
     Node secondRootNode = jenkins.getNode('jenkins-ut03')
-    if (firstRootNode.getComputer().countBusy() <= secondRootNode.getComputer().countBusy()) {
+    if (firstRootNode.getComputer().countBusy() < secondRootNode.getComputer().countBusy()) {
         return firstRootNode.getDisplayName()
-    } else {
+    } else if (firstRootNode.getComputer().countBusy() > secondRootNode.getComputer().countBusy()) {
         return secondRootNode.getDisplayName()
+    } else {
+    //It is not true random, because Random is re-initialized every time
+    //But we have to use it this way, because otherwise pipeline will keep queuing jobs on 1st subcluster
+        int rootNodeNumber = ((new java.util.Random()).nextInt(2) + 1)
+        echo "Running on subcluster: ${rootNodeNumber}"
+        return rootNodeNumber == 1 ? firstRootNode.getDisplayName() : secondRootNode.getDisplayName()
     }
 }
 
@@ -224,3 +230,8 @@ pipeline {
 ```
 An example for 8 nodes is in `examples/pipelines/Jenkinsfile`
 You can also experiment and add more cluster groups.
+
+## Acknowledgements
+* Back end is powered by [Spring](http://spring.io/).
+* Built by [gradle](http://gradle.org/).
+* Tested by [junit](http://junit.org/).
