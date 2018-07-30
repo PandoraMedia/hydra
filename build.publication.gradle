@@ -1,0 +1,97 @@
+subprojects {
+    apply plugin: 'maven'
+    apply plugin: 'signing'
+
+    group = rootProject.groupId
+    artifactId = artifactId
+    version = rootProject.version
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    authentication(userName: sonatypeUsername, password: sonatypePassword)
+                }
+
+                snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                    authentication(userName: sonatypeUsername, password: sonatypePassword)
+                }
+                pom.project {
+
+                    description 'High performance distributed testing Gradle plugin'
+                    name 'Pandora Hydra'
+                    url 'https://github.com/PandoraMedia/hydra'
+                    organization {
+                        name 'com.pandora'
+                        url 'https://github.com/PandoraMedia'
+                    }
+                    issueManagement {
+                        system 'GitHub'
+                        url 'https://github.com/PandoraMedia/hydra/issues'
+                    }
+                    licenses {
+                        license {
+                            name 'Apache License 2.0'
+                            url 'https://github.com/PandoraMedia/hydra/blob/master/LICENSE'
+                            distribution 'repo'
+                        }
+                    }
+                    scm {
+                        url 'https://github.com/PandoraMedia/hydra'
+                        connection 'scm:git:git://github.com/PandoraMedia/hydra.git'
+                        developerConnection 'scm:git:ssh://git@github.com:PandoraMedia/hydra.git'
+                    }
+                    developers {
+                        developer {
+                            id 'jguerra'
+                            name 'Justin Guerra'
+                        }
+                        developer {
+                            id 'alex-dubrouski'
+                            name 'Alex Dubrouski'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+configure([project(':hydra-client'), project(':hydra-common'), project('hydra-gradle-plugin')]) {
+    artifacts {
+        archives jar, javadocJar, sourceJar
+    }
+    signing {
+        sign configurations.archives
+    }
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                pom.project {
+                    packaging 'jar'
+                }
+            }
+        }
+    }
+}
+
+configure (project(':hydra-server')) {
+    artifacts {
+        archives bootWar
+    }
+    signing {
+        sign bootWar
+    }
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                pom.project {
+                    packaging 'war'
+                }
+            }
+        }
+    }
+}

@@ -6,8 +6,8 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.gradle.publish:plugin-publish-plugin:0.9.10'
         classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.10.0'
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:2.0.4.RELEASE'
     }
 }
 
@@ -17,7 +17,6 @@ subprojects {
     }
     apply plugin: 'java'
     apply plugin: 'com.diffplug.gradle.spotless'
-//    apply plugin: 'signing'
 
     spotless {
         java {
@@ -25,8 +24,30 @@ subprojects {
             removeUnusedImports()
         }
     }
-
-//    signing {
-//        sign configurations.archives
-//    }
 }
+
+configure([project(':hydra-client'), project(':hydra-common'), project('hydra-gradle-plugin')]) {
+    task sourceJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allJava
+    }
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc
+    }
+}
+
+configure (project(':hydra-server')) {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'war'
+
+    bootRun {
+        // support passing -Dsystem.property=value to bootRun task
+        systemProperties = System.properties
+        systemProperties['log4j.configuration'] = "$rootDir/deployment/prod/log4j.properties"
+        sourceResources sourceSets.main
+    }
+}
+
+apply from: 'build.publication.gradle'
