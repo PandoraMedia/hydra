@@ -31,7 +31,7 @@ Add the dependency and apply plugin
 ```
 buildscript {
     repositories {
-        maven { url "mavenrepository" }
+        mavenCentral()
     }
     dependencies {
         classpath 'com.pandora.hydra:hydra-gradle-plugin:1.6.5'
