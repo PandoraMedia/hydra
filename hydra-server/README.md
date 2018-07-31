@@ -63,12 +63,13 @@ There are two possible options to deploy the application -- Standalone or Docker
 The `hydra-server` is a Spring Boot application, so it does not need a separate container.
  
  + Build the server with command ./gradlew build (from root folder)
- + Run the server with command `java -jar hydra.war` (war file is in build/libs)
+ + Run the server with command `java -jar hydra.war` (war file is in build/libs, please rename it for convenience)
  + To use different profiles or partition strategies `java -jar hydra.war --spring.profiles.active=file_repo --hydra.partition.strategy=greedy`
 
 
 #### Docker container ####
-`Dockerfile` and `entrypoint.sh` scripts are shipped along with the source. Please modify `application.yml` and set the correct DB host/port/dbname for the `docker` profile.
+`Dockerfile` and `entrypoint.sh` scripts are shipped along with the source. War file has version in it's name, please rename it to `hydra.war` for convenience.
+Please modify `application.yml` and set the correct DB host/port/dbname for the `docker` profile.
 Then switch to the `hydra-server` folder and run:
 
 ```
