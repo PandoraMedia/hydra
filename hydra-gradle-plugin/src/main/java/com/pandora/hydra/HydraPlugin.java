@@ -68,7 +68,6 @@ public class HydraPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        project.getPluginManager().apply(AppPlugin.class);
         createHydraExtensionsFor(project);
     }
 
@@ -83,14 +82,17 @@ public class HydraPlugin implements Plugin<Project> {
      */
     private void createHydraExtensionsFor(Project project) {
         if (project.getSubprojects().isEmpty()) {
-            project.getLogger().debug("Applying to root project: " + project.getName());
+            project.getLogger().debug("Applying to leaf project: " + project.getName());
+            project.getPluginManager().apply(AppPlugin.class);
             HydraPluginExtension hydraExtension = project.getExtensions().create("hydra", HydraPluginExtension.class);
             applyAfterEvaluateClosure(project, hydraExtension);
         } else {
-            for (Project subproject : project.getSubprojects()) {
-                project.getLogger().debug("Applying to subproject: " + subproject.getName());
-                createHydraExtensionsFor(subproject);
-            }
+//            for (Project subproject : project.getSubprojects()) {
+//                project.getLogger().debug("Applying to subproject: " + subproject.getName());
+//                createHydraExtensionsFor(subproject);
+//            }
+            project.getLogger().lifecycle("Hydra Android mod should not be applied on entire tree, please apply it at app module level");
+            throw new RuntimeException("Hydra Android mod should not be applied on entire tree, please apply it at app module level");
         }
     }
 
@@ -138,7 +140,7 @@ public class HydraPlugin implements Plugin<Project> {
                     try {
                         clientSupplier.get().postTestRuntimes(new ArrayList<>(testListener.tests.values()));
                     } catch (IOException e) {
-                        System.err.println("Problem posting test runtime to hydra server for project " + projectName);
+                        project.getLogger().lifecycle("Problem posting test runtime to hydra server for project " + projectName);
                         e.printStackTrace();
                     }
                 });
