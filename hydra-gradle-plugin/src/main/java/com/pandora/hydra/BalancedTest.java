@@ -26,7 +26,6 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestClassScanner;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.testing.Test;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
