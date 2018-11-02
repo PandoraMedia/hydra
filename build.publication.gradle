@@ -1,6 +1,8 @@
 subprojects {
     apply plugin: 'maven'
     apply plugin: 'signing'
+    //Added for local development
+    apply plugin: 'maven-publish'
 
     group = rootProject.groupId
     artifactId = artifactId
@@ -73,6 +75,17 @@ configure([project(':hydra-client'), project(':hydra-common'), project('hydra-gr
                 pom.project {
                     packaging 'jar'
                 }
+            }
+        }
+    }
+    //Added for local development
+    project.publishing {
+        publications {
+            main(MavenPublication) {
+                groupId project.groupId
+                artifactId project.artifactId
+                version project.version
+                from project.components.java
             }
         }
     }

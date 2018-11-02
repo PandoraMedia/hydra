@@ -17,6 +17,8 @@
 
 package com.pandora.hydra;
 
+import com.android.build.gradle.AppPlugin;
+import com.android.build.gradle.tasks.factory.AndroidUnitTest;
 import com.pandora.hydra.client.Configuration;
 import com.pandora.hydra.client.HydraClient;
 import com.pandora.hydra.common.TestSuite;
@@ -67,11 +69,9 @@ import java.util.function.Supplier;
  */
 public class HydraPlugin implements Plugin<Project> {
 
-    private final HydraProjectEvalListener listener = new HydraProjectEvalListener();
-
     @Override
     public void apply(Project project) {
-        project.getGradle().addProjectEvaluationListener(listener);
+        project.getPluginManager().apply(AppPlugin.class);
         createHydraExtensionsFor(project);
     }
 
@@ -88,7 +88,7 @@ public class HydraPlugin implements Plugin<Project> {
         if (project.getSubprojects().isEmpty()) {
             project.getLogger().debug("Applying to root project: " + project.getName());
             HydraPluginExtension hydraExtension = project.getExtensions().create("hydra", HydraPluginExtension.class);
-            listener.addPluginExtension(project, hydraExtension);
+            applyAfterEvaluateClosure(project, hydraExtension);
         } else {
             for (Project subproject : project.getSubprojects()) {
                 project.getLogger().debug("Applying to subproject: " + subproject.getName());
@@ -97,11 +97,64 @@ public class HydraPlugin implements Plugin<Project> {
         }
     }
 
-    private static Test verifyAndCastToTest(Task task) {
-        if(!(task instanceof Test)) {
+    /**
+     * Responsible for creating balanced versions of test classes after a project is finished evaluating
+     */
+    private void applyAfterEvaluateClosure(Project project, HydraPluginExtension hydraExtension) {
+        project.afterEvaluate ( pr -> {
+            Set<String> balancedTests = hydraExtension.getBalancedTests();
+            if(balancedTests == null ||  balancedTests.isEmpty()) {
+                return;
+            }
+
+            List<AndroidUnitTest> testTasks = new ArrayList<>();
+            for (String balancedTest : balancedTests) {
+                Set<Task> tasksByName = pr.getTasksByName(balancedTest, true);
+                tasksByName.forEach(t -> testTasks.add(verifyAndCastToTest(t)));
+            }
+
+            String projectName = pr.getName();
+            //defer creation till a balanced test is actually executed
+            Supplier<HydraClient> clientSupplier = () -> {
+                Configuration configuration = Configuration.newConfigurationFromEnv(buildOverrideMap(hydraExtension));
+                return new HydraClient(configuration);
+            };
+
+            LazyTestExcluder lazyExcluder = new LazyTestExcluder(projectName, clientSupplier);
+
+            for (AndroidUnitTest originalTest : testTasks) {
+
+                BalancedTest balancedTest = pr.getTasks()
+                        .create(originalTest.getName() + "_balanced", BalancedTest.class, new BalancedTestConfigurer(originalTest));
+
+                balancedTest.exclude(lazyExcluder);
+
+                BalancedTestListener testListener = new BalancedTestListener(balancedTest.getProject().getName());
+                balancedTest.addTestListener(testListener);
+
+                if(hydraExtension.isBalanceThreads()) {
+                    balancedTest.setProperty("balanceThreads", true);
+                    balancedTest.setProperty("envOverrides", buildOverrideMap(hydraExtension));
+                }
+
+                balancedTest.doLast(task -> {
+                    try {
+                        clientSupplier.get().postTestRuntimes(new ArrayList<>(testListener.tests.values()));
+                    } catch (IOException e) {
+                        System.err.println("Problem posting test runtime to hydra server for project " + projectName);
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+        });
+    }
+
+    private static AndroidUnitTest verifyAndCastToTest(Task task) {
+        if(!(task instanceof AndroidUnitTest)) {
             throw new GradleException("Task " + task.getName() + " cannot be balanced because it is not a Test");
         }
-        return (Test) task;
+        return (AndroidUnitTest) task;
     }
 
     /**
@@ -126,77 +179,6 @@ public class HydraPlugin implements Plugin<Project> {
         T value= supplier.get();
         if(value != null) {
             map.put(key, value.toString());
-        }
-    }
-
-    /**
-     * Responsible for creating balanced versions of test classes after a project is finished evaluating
-     */
-    private class HydraProjectEvalListener implements ProjectEvaluationListener {
-
-        private ConcurrentMap<String, HydraPluginExtension> extensions = new ConcurrentHashMap<>();
-
-        private void addPluginExtension(Project p, HydraPluginExtension extension) {
-            extensions.put(p.getName(), extension);
-        }
-
-        @Override
-        public void beforeEvaluate(Project project) {
-            //this method is called too late to create the plugin extension
-        }
-
-        @Override
-        public void afterEvaluate(Project project, ProjectState projectState) {
-            HydraPluginExtension hydraExtension = extensions.get(project.getName());
-            if(hydraExtension == null) {
-                return;
-            }
-
-
-            Set<String> balancedTests = hydraExtension.getBalancedTests();
-            if(balancedTests == null ||  balancedTests.isEmpty()) {
-                return;
-            }
-
-            List<Test> testTasks = new ArrayList<>();
-            for (String balancedTest : balancedTests) {
-                Set<Task> tasksByName = project.getTasksByName(balancedTest, true);
-                tasksByName.forEach(t -> testTasks.add(verifyAndCastToTest(t)));
-            }
-
-            String projectName = project.getName();
-            //defer creation till a balanced test is actually executed
-            Supplier<HydraClient> clientSupplier = () -> {
-                Configuration configuration = Configuration.newConfigurationFromEnv(buildOverrideMap(hydraExtension));
-                return new HydraClient(configuration);
-            };
-
-            LazyTestExcluder lazyExcluder = new LazyTestExcluder(projectName, clientSupplier);
-
-            for (Test originalTest : testTasks) {
-
-                BalancedTest balancedTest = project.getTasks()
-                        .create(originalTest.getName() + "_balanced", BalancedTest.class, new BalancedTestConfigurer(originalTest));
-
-                balancedTest.exclude(lazyExcluder);
-
-                BalancedTestListener testListener = new BalancedTestListener(balancedTest.getProject().getName());
-                balancedTest.addTestListener(testListener);
-
-                if(hydraExtension.isBalanceThreads()) {
-                    balancedTest.setProperty("balanceThreads", true);
-                    balancedTest.setProperty("envOverrides", buildOverrideMap(hydraExtension));
-                }
-
-                balancedTest.doLast(task -> {
-                    try {
-                        clientSupplier.get().postTestRuntimes(new ArrayList<>(testListener.tests.values()));
-                    } catch (IOException e) {
-                        System.err.println("Problem posting test runtime to hydra server for project " + projectName);
-                        e.printStackTrace();
-                    }
-                });
-            }
         }
     }
 

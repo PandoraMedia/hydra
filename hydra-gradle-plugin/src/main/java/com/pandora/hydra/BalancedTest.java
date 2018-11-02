@@ -17,6 +17,7 @@
 
 package com.pandora.hydra;
 
+import com.android.build.gradle.tasks.factory.AndroidUnitTest;
 import com.google.common.reflect.TypeToken;
 import com.pandora.hydra.client.Configuration;
 import com.pandora.hydra.client.HydraClient;
@@ -40,7 +41,7 @@ import java.util.Set;
  * @author Justin Guerra
  * @since 12/22/17
  */
-public class BalancedTest extends Test {
+public class BalancedTest extends AndroidUnitTest {
 
     private Map<String, String> envOverrides;
     private boolean balanceThreads;
