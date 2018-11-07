@@ -17,6 +17,7 @@
 
 package com.pandora.hydra;
 
+import com.android.build.gradle.tasks.factory.AndroidUnitTest;
 import org.apache.commons.beanutils.BeanUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -34,9 +35,9 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class BalancedTestConfigurer implements Action<BalancedTest> {
 
-    private final Test originalTest;
+    private final AndroidUnitTest originalTest;
 
-    public BalancedTestConfigurer(Test originalTest) {
+    public BalancedTestConfigurer(AndroidUnitTest originalTest) {
         this.originalTest = originalTest;
     }
 
@@ -51,6 +52,10 @@ public class BalancedTestConfigurer implements Action<BalancedTest> {
         balancedTest.setIgnoreFailures(originalTest.getIgnoreFailures());
         balancedTest.setDependsOn(originalTest.getDependsOn());
         balancedTest.setClasspath(originalTest.getClasspath());
+        balancedTest.setAssetsCollection(originalTest.getAssetsCollection());
+        balancedTest.setMergedManifest(originalTest.getMergedManifest());
+        balancedTest.setResCollection(originalTest.getResCollection());
+        balancedTest.setSdkPlatformDirPath(originalTest.getSdkPlatformDirPath());
 
         TestLoggingContainer originalLoggingContainer = originalTest.getTestLogging();
         balancedTest.testLogging(testLoggingContainer -> copyProperties(testLoggingContainer, originalLoggingContainer));

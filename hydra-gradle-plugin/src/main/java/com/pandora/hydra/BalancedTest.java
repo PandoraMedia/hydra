@@ -17,6 +17,7 @@
 
 package com.pandora.hydra;
 
+import com.android.build.api.artifact.BuildableArtifact;
 import com.android.build.gradle.tasks.factory.AndroidUnitTest;
 import com.google.common.reflect.TypeToken;
 import com.pandora.hydra.client.Configuration;
@@ -25,7 +26,9 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestClassScanner;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -46,6 +49,55 @@ public class BalancedTest extends AndroidUnitTest {
     private boolean balanceThreads;
 
     private HydraClient hydraClient;
+
+    //Android plugin does not provide setters for these fields
+    //so have to add new set of them and implement setters
+    private String hSdkPlatformDirPath;
+    private BuildableArtifact hMergedManifest;
+    private BuildableArtifact hResCollection;
+    private BuildableArtifact hAssetsCollection;
+
+    @InputFiles
+    @Optional
+    @Override
+    public BuildableArtifact getResCollection() {
+        return this.hResCollection;
+    }
+
+    @InputFiles
+    @Optional
+    @Override
+    public BuildableArtifact getAssetsCollection() {
+        return hAssetsCollection;
+    }
+
+    @Input
+    @Override
+    public String getSdkPlatformDirPath() {
+        return hSdkPlatformDirPath;
+    }
+
+    @InputFiles
+    @Override
+    public BuildableArtifact getMergedManifest() {
+        return hMergedManifest;
+    }
+
+    void setSdkPlatformDirPath(String hSdkPlatformDirPath) {
+        this.hSdkPlatformDirPath = hSdkPlatformDirPath;
+    }
+
+    void setMergedManifest(BuildableArtifact hMergedManifest) {
+        this.hMergedManifest = hMergedManifest;
+    }
+
+    void setResCollection(BuildableArtifact hResCollection) {
+        this.hResCollection = hResCollection;
+    }
+
+    void setAssetsCollection(BuildableArtifact hAssetsCollection) {
+        this.hAssetsCollection = hAssetsCollection;
+    }
 
     public BalancedTest() {
         setGroup("verification");
