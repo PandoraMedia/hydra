@@ -18,6 +18,7 @@
 package com.pandora.hydra;
 
 import com.android.build.gradle.AppPlugin;
+import com.android.build.gradle.LibraryPlugin;
 import com.android.build.gradle.tasks.factory.AndroidUnitTest;
 import com.pandora.hydra.client.Configuration;
 import com.pandora.hydra.client.HydraClient;
@@ -82,15 +83,10 @@ public class HydraPlugin implements Plugin<Project> {
      */
     private void createHydraExtensionsFor(Project project) {
         if (project.getSubprojects().isEmpty()) {
-            project.getLogger().debug("Applying to leaf project: " + project.getName());
-            project.getPluginManager().apply(AppPlugin.class);
+            project.getLogger().info("Applying to leaf project: " + project.getName());
             HydraPluginExtension hydraExtension = project.getExtensions().create("hydra", HydraPluginExtension.class);
             applyAfterEvaluateClosure(project, hydraExtension);
         } else {
-//            for (Project subproject : project.getSubprojects()) {
-//                project.getLogger().debug("Applying to subproject: " + subproject.getName());
-//                createHydraExtensionsFor(subproject);
-//            }
             project.getLogger().lifecycle("Hydra Android mod should not be applied on entire tree, please apply it at app module level");
             throw new RuntimeException("Hydra Android mod should not be applied on entire tree, please apply it at app module level");
         }
