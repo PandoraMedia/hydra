@@ -17,8 +17,6 @@
 
 package com.pandora.hydra;
 
-import com.android.build.gradle.AppPlugin;
-import com.android.build.gradle.LibraryPlugin;
 import com.android.build.gradle.tasks.factory.AndroidUnitTest;
 import com.pandora.hydra.client.Configuration;
 import com.pandora.hydra.client.HydraClient;

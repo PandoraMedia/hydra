@@ -21,7 +21,6 @@ import com.android.build.gradle.tasks.factory.AndroidUnitTest;
 import org.apache.commons.beanutils.BeanUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 
 import java.lang.reflect.InvocationTargetException;
