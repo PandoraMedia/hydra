@@ -1,8 +1,6 @@
 dependencies {
-    compile gradleApi()
-
-    compile project(':hydra-client')
-
+    compile project(':hydra-gradle-core')
+    
     compile 'com.google.guava:guava:23.6-jre'
     compile 'commons-beanutils:commons-beanutils:1.9.3'
 

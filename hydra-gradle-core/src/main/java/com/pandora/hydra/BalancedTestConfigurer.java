@@ -26,7 +26,7 @@ import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * Configures a {@link BalancedTest} based off an original test. Only a subset of the configuration from the original test
+ * Configures a newly created BalancedTest based off an original test. Only a subset of the configuration from the original test
  * is copied.
  *
  * @author Justin Guerra
