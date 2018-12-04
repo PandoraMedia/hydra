@@ -32,16 +32,16 @@ import java.lang.reflect.InvocationTargetException;
  * @author Justin Guerra
  * @since 1/16/18
  */
-public class BalancedTestConfigurer implements Action<BalancedTest> {
+public class BalancedTestConfigurer<T extends Test> implements Action<T> {
 
-    private final Test originalTest;
+    private final T originalTest;
 
-    public BalancedTestConfigurer(Test originalTest) {
+    public BalancedTestConfigurer(T originalTest) {
         this.originalTest = originalTest;
     }
 
     @Override
-    public void execute(BalancedTest balancedTest) {
+    public void execute(T balancedTest) {
         balancedTest.setSystemProperties(originalTest.getSystemProperties());
         balancedTest.setEnvironment(originalTest.getEnvironment());
         balancedTest.setMinHeapSize(originalTest.getMinHeapSize());

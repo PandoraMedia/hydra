@@ -17,41 +17,20 @@
 
 package com.pandora.hydra;
 
-import com.pandora.hydra.client.Configuration;
-import com.pandora.hydra.client.HydraClient;
-import com.pandora.hydra.common.TestSuite;
-import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.ProjectState;
-import org.gradle.api.Task;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.TestResult;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Supplier;
 
 /**
  * Plugin that is used to create balanced versions of tests. A balanced test only runs a subset of available tests, expecting
  * the rest to be run on other machines.
  *
- * This plugin works by searching for tests that are defined in {@link HydraPluginExtension#balancedTests}. Upon finding these tests
+ * This plugin works by searching for tests that are defined in {@link HydraPluginExtension#getBalancedTests()}. Upon finding these tests
  * a new test task is configured that will only run a portion of the tests define, optionally balance the tests in a uniform manner
  * across threads, and report the results back to the hydra server. The new test that is created has the name originalTestName_balanced.
  * For example, say you wanted a balanced version of a task named "integrationTest" then this plugin will create a new test task with the
@@ -97,38 +76,6 @@ public class HydraPlugin implements Plugin<Project> {
         }
     }
 
-    private static Test verifyAndCastToTest(Task task) {
-        if(!(task instanceof Test)) {
-            throw new GradleException("Task " + task.getName() + " cannot be balanced because it is not a Test");
-        }
-        return (Test) task;
-    }
-
-    /**
-     * The hydra extension object can be used to override environment variables that are normally present when a balanced test
-     * is run in jenkins
-     * @param extension - represents items in a hydra {} configuration in the build file
-     * @return a map of strings that are used to override environmental variables in a hydra-client
-     */
-    private Map<String, String> buildOverrideMap(HydraPluginExtension extension) {
-        Map<String, String> overrideMap = new HashMap<>();
-
-        addIfPresent(overrideMap, extension::getHydraServer, "HYDRA_SERVER");
-        addIfPresent(overrideMap, extension::getHydraHostList, "HYDRA_HOST_LIST");
-        addIfPresent(overrideMap, extension::getBuildTag, "BUILD_TAG");
-        addIfPresent(overrideMap, extension::getSlaveName, "VM_HOSTNAME");
-        addIfPresent(overrideMap, extension::getJobName, "JOB_NAME");
-
-        return overrideMap;
-    }
-
-    private <T> void addIfPresent(Map<String, String> map, Supplier<T> supplier, String key) {
-        T value= supplier.get();
-        if(value != null) {
-            map.put(key, value.toString());
-        }
-    }
-
     /**
      * Responsible for creating balanced versions of test classes after a project is finished evaluating
      */
@@ -152,159 +99,7 @@ public class HydraPlugin implements Plugin<Project> {
                 return;
             }
 
-
-            Set<String> balancedTests = hydraExtension.getBalancedTests();
-            if(balancedTests == null ||  balancedTests.isEmpty()) {
-                return;
-            }
-
-            List<Test> testTasks = new ArrayList<>();
-            for (String balancedTest : balancedTests) {
-                Set<Task> tasksByName = project.getTasksByName(balancedTest, true);
-                tasksByName.forEach(t -> testTasks.add(verifyAndCastToTest(t)));
-            }
-
-            String projectName = project.getName();
-            //defer creation till a balanced test is actually executed
-            Supplier<HydraClient> clientSupplier = () -> {
-                Configuration configuration = Configuration.newConfigurationFromEnv(buildOverrideMap(hydraExtension));
-                return new HydraClient(configuration);
-            };
-
-            LazyTestExcluder lazyExcluder = new LazyTestExcluder(projectName, clientSupplier);
-
-            for (Test originalTest : testTasks) {
-
-                BalancedTest balancedTest = project.getTasks()
-                        .create(originalTest.getName() + "_balanced", BalancedTest.class, new BalancedTestConfigurer(originalTest));
-
-                balancedTest.exclude(lazyExcluder);
-
-                BalancedTestListener testListener = new BalancedTestListener(balancedTest.getProject().getName());
-                balancedTest.addTestListener(testListener);
-
-                if(hydraExtension.isBalanceThreads()) {
-                    balancedTest.setProperty("balanceThreads", true);
-                    balancedTest.setProperty("envOverrides", buildOverrideMap(hydraExtension));
-                }
-
-                balancedTest.doLast(task -> {
-                    try {
-                        clientSupplier.get().postTestRuntimes(new ArrayList<>(testListener.tests.values()));
-                    } catch (IOException e) {
-                        System.err.println("Problem posting test runtime to hydra server for project " + projectName);
-                        e.printStackTrace();
-                    }
-                });
-            }
-        }
-    }
-
-    /**
-     * Queries the test load balancer server to retrieve a black list of tests that should be skipped.
-     * Defers queries to the hydra-server until execution time
-     */
-    private static class LazyTestExcluder implements Spec<FileTreeElement> {
-
-        private final Supplier<HydraClient> hydraClient;
-        private final String projectName;
-
-        private volatile Set<String> blacklist;
-
-        LazyTestExcluder(String projectName, Supplier<HydraClient> hydraClientSupplier) {
-            this.hydraClient = hydraClientSupplier;
-            this.projectName = projectName;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(FileTreeElement fileTreeElement) {
-            if(blacklist == null) {
-                fetchTestExcludesListFromHydraServer();
-            }
-            if(fileTreeElement.isDirectory()) {
-                return false;
-            } else {
-                RelativePath relativePath = fileTreeElement.getRelativePath();
-                String fullyQualifiedName = buildQualifiedNameWithoutExtension(relativePath);
-                return blacklist.contains(fullyQualifiedName);
-            }
-        }
-
-        private synchronized void fetchTestExcludesListFromHydraServer() {
-            if(blacklist != null) {
-                return;
-            }
-
-            try {
-                blacklist = hydraClient.get().getExcludes();
-            } catch (IOException e) {
-                throw new GradleException("Unable to fetch tests from hydra server for project " + projectName, e);
-            }
-        }
-
-        private String buildQualifiedNameWithoutExtension(RelativePath path) {
-            LinkedList<String> segments = new LinkedList<>(Arrays.asList(path.getSegments()));
-            String fileName = segments.pollLast();
-            segments.addLast(stripFileExtension(fileName));
-
-            return String.join(".", segments);
-        }
-
-        private String stripFileExtension(String fileName) {
-            Objects.requireNonNull(fileName);
-
-            int lastIndexOf = fileName.lastIndexOf('.');
-            if(lastIndexOf < 0) {
-                return fileName;
-            } else {
-                return fileName.substring(0, lastIndexOf);
-            }
-        }
-    }
-
-    /**
-     * Keeps track of test runtimes and outcomes so they can be reported back to the hydra server
-     */
-    private static class BalancedTestListener implements TestListener {
-
-        private final String projectName;
-        private final ConcurrentMap<String, TestSuite> tests;
-
-        private BalancedTestListener(String projectName) {
-            this.projectName = projectName;
-            this.tests = new ConcurrentHashMap<>();
-        }
-
-        @Override
-        public void beforeSuite(TestDescriptor suite) { }
-
-        @Override
-        public void afterSuite(TestDescriptor suite, TestResult result) {
-
-        }
-
-        @Override
-        public void beforeTest(TestDescriptor testDescriptor) { }
-
-        @Override
-        public void afterTest(TestDescriptor testDescriptor, TestResult result) {
-            String className = testDescriptor.getClassName();
-            if(className == null) {
-                return;
-            }
-
-            long failedTestCount = result.getFailedTestCount();
-            long elapsed = result.getEndTime() - result.getStartTime();
-
-            TestSuite testSuite = tests.get(className);
-            if(testSuite != null) {
-                //RedisDependencyRunner can cause this situation
-                boolean failed = testSuite.isFailed() || failedTestCount > 0;
-                tests.put(className, new TestSuite(projectName, className, elapsed + testSuite.getRunTime(), failed));
-            } else {
-                tests.put(className, new TestSuite(projectName, className, elapsed, failedTestCount > 0));
-            }
-
+            BalancedTestFactory.createBalancedTest(project, hydraExtension, Test.class);
         }
     }
 
