@@ -17,6 +17,7 @@
 
 package com.pandora.hydra.android;
 
+import com.android.build.gradle.AppPlugin;
 import com.android.build.gradle.tasks.factory.AndroidUnitTest;
 import com.pandora.hydra.BalancedTestFactory;
 import com.pandora.hydra.HydraPluginExtension;
@@ -47,12 +48,22 @@ public class HydraAndroidPlugin implements Plugin<Project> {
     public void apply(Project project) {
         if (project.getSubprojects().isEmpty()) {
             project.getLogger().info("Applying to leaf project: " + project.getName());
+            project.getPluginManager().apply(AppPlugin.class);
             HydraPluginExtension hydraExtension = project.getExtensions().create("hydra", HydraPluginExtension.class);
             if(hydraExtension.isBalanceThreads()) {
                 project.getLogger().info("Hydra Android doesn't support thread balancing. Ignoring setting");
                 hydraExtension.setBalanceThreads(false);
             }
-            project.afterEvaluate(p -> BalancedTestFactory.createBalancedTest(p, hydraExtension, AndroidUnitTest.class));
+            project.afterEvaluate(p -> {
+                BalancedTestFactory<AndroidBalancedTest, AndroidUnitTest> factory = new BalancedTestFactory<>(AndroidBalancedTest.class,
+                        AndroidUnitTest.class,
+                        (balancedTest, originalTest) -> {
+                            balancedTest.setMergedManifest(originalTest.getMergedManifest());
+                            balancedTest.setResCollection(originalTest.getResCollection());
+                            balancedTest.setSdkPlatformDirPath(originalTest.getSdkPlatformDirPath());
+                        });
+                factory.createBalancedTest(p, hydraExtension);
+            });
         } else {
             project.getLogger().lifecycle("Hydra Android mod should not be applied on entire tree, please apply it at app module level");
             throw new RuntimeException("Hydra Android mod should not be applied on entire tree, please apply it at app module level");

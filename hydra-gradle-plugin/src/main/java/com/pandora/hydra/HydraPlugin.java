@@ -99,7 +99,8 @@ public class HydraPlugin implements Plugin<Project> {
                 return;
             }
 
-            BalancedTestFactory.createBalancedTest(project, hydraExtension, Test.class);
+            BalancedTestFactory<BalancedTest, Test> factory = new BalancedTestFactory<>(BalancedTest.class, Test.class);
+            factory.createBalancedTest(project, hydraExtension);
         }
     }
 

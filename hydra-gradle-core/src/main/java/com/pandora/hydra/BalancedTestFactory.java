@@ -13,25 +13,40 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 /**
  * @author Justin Guerra
  * @since 2018-11-30
  */
-public class BalancedTestFactory {
+public class BalancedTestFactory<T extends Test, U extends Test> {
 
-    public static <T extends Test> void createBalancedTest(Project project, HydraPluginExtension hydraExtension, Class<T> type) {
+    private final Class<T> balancedTestType;
+    private final Class<U> originalTestType;
+    private final BiConsumer<T, U> extraConfigurer;
+
+    public BalancedTestFactory(Class<T> balancedType, Class<U> originalType) {
+        this(balancedType, originalType, (a,b) -> {});
+    }
+
+    public BalancedTestFactory(Class<T> balancedType, Class<U> originalType, BiConsumer<T, U> extraConfigurer) {
+        this.balancedTestType = balancedType;
+        this.originalTestType = originalType;
+        this.extraConfigurer = extraConfigurer;
+    }
+
+    public void createBalancedTest(Project project, HydraPluginExtension hydraExtension) {
 
         Set<String> balancedTests = hydraExtension.getBalancedTests();
         if(balancedTests == null ||  balancedTests.isEmpty()) {
             return;
         }
 
-        List<T> testTasks = new ArrayList<>();
+        List<U> testTasks = new ArrayList<>();
         for (String balancedTest : balancedTests) {
             Set<Task> tasksByName = project.getTasksByName(balancedTest, true);
-            tasksByName.forEach(t -> testTasks.add(verifyAndCastToTest(t, type)));
+            tasksByName.forEach(t -> testTasks.add(verifyAndCastToTest(t, originalTestType)));
         }
 
         String projectName = project.getName();
@@ -43,9 +58,9 @@ public class BalancedTestFactory {
 
         LazyTestExcluder lazyExcluder = new LazyTestExcluder(projectName, clientSupplier);
 
-        for (T originalTest : testTasks) {
+        for (U originalTest : testTasks) {
             T balancedTest = project.getTasks()
-                    .create(originalTest.getName() + "_balanced", type, new BalancedTestConfigurer<>(originalTest));
+                    .create(originalTest.getName() + "_balanced", balancedTestType, new BalancedTestConfigurer<>(originalTest, extraConfigurer));
 
             balancedTest.exclude(lazyExcluder);
 
