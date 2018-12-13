@@ -50,11 +50,12 @@ public class HydraAndroidPlugin implements Plugin<Project> {
             project.getLogger().info("Applying to leaf project: " + project.getName());
             project.getPluginManager().apply(AppPlugin.class);
             HydraPluginExtension hydraExtension = project.getExtensions().create("hydra", HydraPluginExtension.class);
-            if(hydraExtension.isBalanceThreads()) {
-                project.getLogger().info("Hydra Android doesn't support thread balancing. Ignoring setting");
-                hydraExtension.setBalanceThreads(false);
-            }
             project.afterEvaluate(p -> {
+                if(hydraExtension.isBalanceThreads()) {
+                    project.getLogger().info("Hydra Android doesn't support thread balancing. Ignoring setting");
+                    hydraExtension.setBalanceThreads(false);
+                }
+
                 BalancedTestFactory<AndroidBalancedTest, AndroidUnitTest> factory = new BalancedTestFactory<>(AndroidBalancedTest.class,
                         AndroidUnitTest.class,
                         (balancedTest, originalTest) -> {
