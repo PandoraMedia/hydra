@@ -34,7 +34,12 @@ public class BalancedTestListener implements TestListener {
 
     @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
-        String className = testDescriptor.getClassName();
+        TestDescriptor parent = testDescriptor.getParent();
+        if(parent == null) {
+            return;
+        }
+
+        String className = parent.getClassName();
         if(className == null) {
             return;
         }
