@@ -2,70 +2,68 @@
 
 The plugin works by decorating an existing test task to talk to the hydra-server.
 The plugin is responsible for creating a hydra-client, fetching the test blacklist from the hydra-server, and also reporting test results
-to the hydra-server. 
+to the hydra-server.
+
+#####Here are some caveats of this plugin:
+- Pandora Hydra Android plugin must be applied after Android Application plugin, as it needs to decorate tasks created by Application plugin
+- Pandora Hydra plugin should be applied at application leaf project level, it will fail if subprojects are identified, please use Hydra core plugin
+ for Android library projects instead. Core plugin supports trees of projects
+- You need to check application flavours and list some or all of them as `balancedTests` to get it to work
+- Please be careful with `maxParallelForks` / `maxHeapSize = "Xg"` as it might result in excessive memory consumption and significantly slow down the build.
+ Memory consumption can be estimated as `maxParallelForks * maxHeapSize + 2GB (for daemon and root thread)`
+
 
 Here is the example of build configuration: 
 ```
 buildscript {
-       repositories {
-           mavenCentral()
-       }
-       dependencies {
-           classpath 'com.pandora.hydra:hydra-gradle-plugin:1.6.5'
-       }
-   }
-   
-   apply plugin: 'com.pandora.hydra'
-   
-   task integrationTest(type: Test) {
-       minHeapSize = "1g"
-       maxHeapSize = "6g"
-   
-       outputs.upToDateWhen { false }
-       testClassesDirs = sourceSets.integrationTest.output.classesDirs
-       classpath = sourceSets.integrationTest.runtimeClasspath
-   
-       ignoreFailures true
-   
-       testLogging {
-           events 'passed', 'failed'
-       }
-   
-       maxParallelForks = 10
-   }
-   
-   task testReport(type: TestReport) {
-       destinationDir = file("$buildDir/reports/allTests")
-   
-       if(!destinationDir.exists()) {
-           destinationDir.mkdir()
-       }
-   
-       // Include the results from the `test` task in all subprojects
-       reportOn test, integrationTest
-   }
-   
-   task unitTestReport(type: TestReport) {
-       destinationDir = file("$buildDir/reports/unitTest")
-       // Include the results from the `test` task in all subprojects
-       reportOn test
-   }
-   
-   task integrationTestReport(type: TestReport) {
-       destinationDir = file("$buildDir/reports/integrationTest")
-       // Include the results from the `test` task in all subprojects
-       reportOn integrationTest
-   }
-   
-   task allReport(dependsOn: ['unitTestReport', 'integrationTestReport', 'testReport'])
-   
-   test {
-       maxParallelForks = 8
-   }
-   
-   hydra {
-       balancedTests = ['integrationTest']
-   }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        google()
+    }
+    dependencies {
+        classpath 'com.pandora.hydra:hydra-android-gradle-plugin:1.6.6'
+    }
+}
+
+apply plugin: 'com.android.application'
+//This enables all test task to fork as many threads as available CPU sores (2x of actual CPU cores for Intel HyperThreading enabled CPUs)
+project.tasks.withType(Test) {
+    maxParallelForks = Runtime.runtime.availableProcessors()
+}
+
+apply plugin: 'com.pandora.hydra.android'
+hydra {
+    balancedTests = ['testReleaseUnitTest']
+    balanceThreads = true
+}
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.example.test1"
+        minSdkVersion 15
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
 ```
 Please note that you might need to publish plugin jar and it's dependencies to your local Nexus/Artifactory or provide it as a flat dir
 
