@@ -66,8 +66,8 @@ public class HydraAndroidPlugin implements Plugin<Project> {
                 factory.createBalancedTest(p, hydraExtension);
             });
         } else {
-            project.getLogger().lifecycle("Hydra Android mod should not be applied on entire tree, please apply it at app module level");
-            throw new RuntimeException("Hydra Android mod should not be applied on entire tree, please apply it at app module level");
+            project.getLogger().lifecycle("###########Pandora Hydra plugin should be applied at Android application leaf project level, which should not have any sub projects. Please use Hydra core plugin for library projects or tree of projects");
+            throw new RuntimeException("Pandora Hydra plugin should be applied at Android application leaf projects level, which should not have any sub projects");
         }
     }
 
