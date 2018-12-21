@@ -5,16 +5,17 @@ The plugin is responsible for creating a hydra-client, fetching the test blackli
 to the hydra-server.
 
 #####Here are some caveats of this plugin:
-- Pandora Hydra Android plugin must be applied after Android Application plugin, as it needs to decorate tasks created by Application plugin
-- Pandora Hydra plugin should be applied at application leaf project level, it will fail if subprojects are identified, please use Hydra core plugin
- for Android library projects instead. Core plugin supports trees of projects
+- Pandora Hydra Android plugin must be applied after Android Application/Library plugin, as it needs to decorate tasks created by the aforementioned plugins.
+- Pandora Hydra plugin should be applied _directly_ to each module containing tests you wish to balance; it will fail if subprojects are identified. 
+This is in contrast to the Hydra Core plugin, which can simply be applied at the root level, and will then be automatically applied
+to the entire tree of subprojects.
 - You need to check application flavours and list some or all of them as `balancedTests` to get it to work
 - Please be careful with `maxParallelForks` / `maxHeapSize = "Xg"` as it might result in excessive memory consumption and significantly slow down the build.
  Memory consumption can be estimated as `maxParallelForks * maxHeapSize + 2GB (for daemon and root thread)`
-- Thread balancing is currently not implemented for Android plugin and it will throw exception
+- Thread balancing is currently not implemented for Android plugin; `balanceThreads` option is simply ignored.
 
 
-Here is the example of build configuration: 
+Here is a simple example for a project comprised of a single app module, which in turn contains _all_ the tests:  
 ```
 buildscript {
     repositories {
@@ -65,7 +66,31 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 ```
-Please note that you might need to publish plugin jar and it's dependencies to your local Nexus/Artifactory or provide it as a flat dir
+
+Next is a snippet for a more complicated project, comprised of one or more app modules and associated library modules,
+each of which contains unit tests that need to be balanced:
+```
+def hydraClosure = { someProject ->
+    configure(someProject) {
+        apply plugin: 'com.pandora.hydra.android'
+        hydra {
+            balancedTests = ['testReleaseUnitTest']
+        }
+    }
+}
+
+subprojects { nextSubproject ->
+    plugins.withType(com.android.build.gradle.AppPlugin) {
+        hydraClosure(nextSubproject)
+    }
+
+    plugins.withType(com.android.build.gradle.LibraryPlugin) {
+        hydraClosure(nextSubproject)
+    }
+}
+```
+
+Please note that you might need to publish plugin jar and its dependencies to your local Nexus/Artifactory or provide it as a flat dir
 
 
 ## Configuration
@@ -84,13 +109,3 @@ you will generally want to include this configuration in your CI build
 + `jobName` - name of the job (on CI server) executing a test run
 + `buildTag` - a unique name associated with a given execution of jobName
 + `slaveName` - the name of the host running the test
-
-### More on thread balancing 
-
-Please note that `maxParallelForks` for integrationTest task should be at least 2 to be able to balance the load between threads
-Also please check amount of free memory on target hosts, as Gradle will spawn multiple JVMs and each of them will consume
-memory specified in `maxHeapSize = "Xg"`, thus if you are running 2 parallel jobs on each server, using 10 threads,
-you need to have 2 * 10 * X GB of free memory (120GB in example above)
-
-
-
