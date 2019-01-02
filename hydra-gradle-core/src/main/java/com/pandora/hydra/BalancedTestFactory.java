@@ -72,7 +72,8 @@ public class BalancedTestFactory<T extends Test, U extends Test> {
                 balancedTest.setProperty("envOverrides", buildOverrideMap(hydraExtension));
             }
 
-            balancedTest.doLast(task -> {
+            Task finalizer = project.getTasks().create(balancedTest.getName() + "_finalizer");
+            finalizer.doLast(task -> {
                 try {
                     clientSupplier.get().postTestRuntimes(new ArrayList<>(testListener.getTests().values()));
                 } catch (IOException e) {
@@ -80,6 +81,9 @@ public class BalancedTestFactory<T extends Test, U extends Test> {
                     e.printStackTrace();
                 }
             });
+
+            //use finalizedBy so that it always runs regardless of whether tests fail or not
+            balancedTest.finalizedBy(finalizer);
         }
     }
 
