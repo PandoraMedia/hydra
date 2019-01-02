@@ -5,15 +5,17 @@ The plugin is responsible for creating a hydra-client, fetching the test blackli
 to the hydra-server.
 
 #####Here are some caveats of this plugin:
-- Pandora Hydra Android plugin must be applied after Android Application plugin, as it needs to decorate tasks created by Application plugin
-- Pandora Hydra plugin should be applied at application leaf project level, it will fail if subprojects are identified, please use Hydra core plugin
- for Android library projects instead. Core plugin supports trees of projects
+- Pandora Hydra Android plugin must be applied after Android Application/Library plugin, as it needs to decorate tasks created by the aforementioned plugins.
+- Pandora Hydra plugin should be applied _directly_ to each module containing tests you wish to balance; it will fail if subprojects are identified. 
+This is in contrast to the Hydra Core plugin, which can simply be applied at the root level, and will then be automatically applied
+to the entire tree of subprojects.
 - You need to check application flavours and list some or all of them as `balancedTests` to get it to work
 - Please be careful with `maxParallelForks` / `maxHeapSize = "Xg"` as it might result in excessive memory consumption and significantly slow down the build.
  Memory consumption can be estimated as `maxParallelForks * maxHeapSize + 2GB (for daemon and root thread)`
+- Thread balancing is currently not implemented for Android plugin; `balanceThreads` option is simply ignored.
 
 
-Here is the example of build configuration: 
+Here is a simple example for a project comprised of a single app module, which in turn contains _all_ the tests:  
 ```
 buildscript {
     repositories {
@@ -27,7 +29,7 @@ buildscript {
 }
 
 apply plugin: 'com.android.application'
-//This enables all test task to fork as many threads as available CPU sores (2x of actual CPU cores for Intel HyperThreading enabled CPUs)
+//This enables all test tasks to fork as many threads as available CPU sores (2x of actual CPU cores for Intel HyperThreading enabled CPUs)
 project.tasks.withType(Test) {
     maxParallelForks = Runtime.runtime.availableProcessors()
 }
@@ -35,7 +37,6 @@ project.tasks.withType(Test) {
 apply plugin: 'com.pandora.hydra.android'
 hydra {
     balancedTests = ['testReleaseUnitTest']
-    balanceThreads = true
 }
 
 android {
@@ -65,7 +66,31 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 ```
-Please note that you might need to publish plugin jar and it's dependencies to your local Nexus/Artifactory or provide it as a flat dir
+
+Next is a snippet for a more complicated project, comprised of one or more app modules and associated library modules,
+each of which contains unit tests that need to be balanced:
+```
+def hydraClosure = { someProject ->
+    configure(someProject) {
+        apply plugin: 'com.pandora.hydra.android'
+        hydra {
+            balancedTests = ['testReleaseUnitTest']
+        }
+    }
+}
+
+subprojects { nextSubproject ->
+    plugins.withType(com.android.build.gradle.AppPlugin) {
+        hydraClosure(nextSubproject)
+    }
+
+    plugins.withType(com.android.build.gradle.LibraryPlugin) {
+        hydraClosure(nextSubproject)
+    }
+}
+```
+
+Please note that you might need to publish plugin jar and its dependencies to your local Nexus/Artifactory or provide it as a flat dir
 
 
 ## Configuration
@@ -75,10 +100,6 @@ The plugin can be configured inside of a `hydra { }` configuration block.
 + `balancedTests` is an array of tests that will have a balanced counterpart created. The plugin will create a new task for 
 each test is in this list using the naming convention `originalTest_balanced`. The new test task wraps the original and automatically
 handles reading the test blacklist and publishing test results to the hydra server
-+ `balanceThreads` attempts to create optimal test partitions across the _threads_ on an individual node (must be running with maxParallelForks >= 2).
-This can be useful because Gradle assigns tests to worker threads at test discovery time, and if you have bad luck your slowest tests
-can all be assigned to the same thread. Thread balancing is the most fragile feature in the hydra plugin, and should be disabled if you run
-into any problems
 
 For convenience it is also possible to fully configure a client in the hydra configuration block. While this can be useful for testing
 you will generally want to include this configuration in your CI build
@@ -88,14 +109,3 @@ you will generally want to include this configuration in your CI build
 + `jobName` - name of the job (on CI server) executing a test run
 + `buildTag` - a unique name associated with a given execution of jobName
 + `slaveName` - the name of the host running the test
-
-### More on thread balancing 
-
-By setting `balanceThreads true` you enable balancing test between threads
-Please note that `maxParallelForks` for integrationTest task should be at least 2 to be able to balance the load between threads
-Also please check amount of free memory on target hosts, as Gradle will spawn multiple JVMs and each of them will consume
-memory specified in `maxHeapSize = "Xg"`, thus if you are running 2 parallel jobs on each server, using 10 threads,
-you need to have 2 * 10 * X GB of free memory (120GB in example above)
-
-
-

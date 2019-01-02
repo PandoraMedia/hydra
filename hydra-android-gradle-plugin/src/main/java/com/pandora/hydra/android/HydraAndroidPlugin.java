@@ -17,7 +17,6 @@
 
 package com.pandora.hydra.android;
 
-import com.android.build.gradle.AppPlugin;
 import com.android.build.gradle.tasks.factory.AndroidUnitTest;
 import com.pandora.hydra.BalancedTestFactory;
 import com.pandora.hydra.HydraPluginExtension;
@@ -48,7 +47,6 @@ public class HydraAndroidPlugin implements Plugin<Project> {
     public void apply(Project project) {
         if (project.getSubprojects().isEmpty()) {
             project.getLogger().info("Applying to leaf project: " + project.getName());
-            project.getPluginManager().apply(AppPlugin.class);
             HydraPluginExtension hydraExtension = project.getExtensions().create("hydra", HydraPluginExtension.class);
             project.afterEvaluate(p -> {
                 if(hydraExtension.isBalanceThreads()) {
