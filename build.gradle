@@ -26,7 +26,8 @@ subprojects {
     }
 }
 
-configure([project(':hydra-client'), project(':hydra-common'), project('hydra-gradle-plugin')]) {
+configure([project(':hydra-client'), project(':hydra-common'), project(':hydra-gradle-core'), 
+           project('hydra-gradle-plugin'), project('hydra-android-gradle-plugin')]) {
     task sourceJar(type: Jar) {
         classifier = 'sources'
         from sourceSets.main.allJava

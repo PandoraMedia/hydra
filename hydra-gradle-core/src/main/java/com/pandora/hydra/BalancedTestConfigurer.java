@@ -24,24 +24,27 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.function.BiConsumer;
 
 /**
- * Configures a {@link BalancedTest} based off an original test. Only a subset of the configuration from the original test
+ * Configures a newly created BalancedTest based off an original test. Only a subset of the configuration from the original test
  * is copied.
  *
  * @author Justin Guerra
  * @since 1/16/18
  */
-public class BalancedTestConfigurer implements Action<BalancedTest> {
+public class BalancedTestConfigurer<T extends Test, U extends Test> implements Action<T> {
 
-    private final Test originalTest;
+    private final U originalTest;
+    private final BiConsumer<T, U> configurer;
 
-    public BalancedTestConfigurer(Test originalTest) {
+    public BalancedTestConfigurer(U originalTest, BiConsumer<T,U> configurer) {
         this.originalTest = originalTest;
+        this.configurer = configurer;
     }
 
     @Override
-    public void execute(BalancedTest balancedTest) {
+    public void execute(T balancedTest) {
         balancedTest.setSystemProperties(originalTest.getSystemProperties());
         balancedTest.setEnvironment(originalTest.getEnvironment());
         balancedTest.setMinHeapSize(originalTest.getMinHeapSize());
@@ -54,6 +57,8 @@ public class BalancedTestConfigurer implements Action<BalancedTest> {
 
         TestLoggingContainer originalLoggingContainer = originalTest.getTestLogging();
         balancedTest.testLogging(testLoggingContainer -> copyProperties(testLoggingContainer, originalLoggingContainer));
+
+        configurer.accept(balancedTest, originalTest);
 
         balancedTest.getOutputs().upToDateWhen(task -> false);
     }

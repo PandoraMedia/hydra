@@ -1,6 +1,8 @@
 subprojects {
     apply plugin: 'maven'
     apply plugin: 'signing'
+    //Added for local development
+    apply plugin: 'maven-publish'
 
     group = rootProject.groupId
     artifactId = artifactId
@@ -60,7 +62,8 @@ subprojects {
 }
 
 
-configure([project(':hydra-client'), project(':hydra-common'), project('hydra-gradle-plugin')]) {
+configure([project(':hydra-client'), project(':hydra-common'), project(':hydra-gradle-core'), project('hydra-gradle-plugin'),
+           project('hydra-android-gradle-plugin')]) {
     artifacts {
         archives jar, javadocJar, sourceJar
     }
@@ -73,6 +76,18 @@ configure([project(':hydra-client'), project(':hydra-common'), project('hydra-gr
                 pom.project {
                     packaging 'jar'
                 }
+            }
+        }
+    }
+
+    //Added for local development
+    project.publishing {
+        publications {
+            main(MavenPublication) {
+                groupId project.groupId
+                artifactId project.artifactId
+                version project.version
+                from project.components.java
             }
         }
     }
