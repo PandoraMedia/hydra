@@ -4,7 +4,7 @@ The plugin works by decorating an existing test task to talk to the hydra-server
 The plugin is responsible for creating a hydra-client, fetching the test blacklist from the hydra-server, and also reporting test results
 to the hydra-server.
 
-#####Here are some caveats of this plugin:
+##### Here are some caveats of this plugin:
 - Pandora Hydra Android plugin must be applied after Android Application/Library plugin, as it needs to decorate tasks created by the aforementioned plugins.
 - Pandora Hydra plugin should be applied _directly_ to each module containing tests you wish to balance; it will fail if subprojects are identified. 
 This is in contrast to the Hydra Core plugin, which can simply be applied at the root level, and will then be automatically applied
