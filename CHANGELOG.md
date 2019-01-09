@@ -7,3 +7,7 @@
 ## 1.7.0
 
 * We added Android unit tests support, refactored code and split into gradle core, Java plugin and Android plugin. Added documentation for Android plugin
+
+## 1.7.1
+
+* Fixed bug with Android plugin not resetting JVM properties on balanced test tasks
