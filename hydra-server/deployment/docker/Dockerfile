@@ -1,6 +1,6 @@
 FROM openjdk:8-jre-stretch
 
-ARG VERSION=1.6.5
+ARG VERSION=1.7.1
 
 ENV WEBAPPS_DIR /boot/webapps
 ENV RESOURCES_DIR /boot/resources
