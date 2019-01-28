@@ -45,7 +45,7 @@ public class HydraAndroidPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        project.getLogger().info("Applying to leaf project: " + project.getName());
+        project.getLogger().info("Applying to project: " + project.getName());
         HydraPluginExtension hydraExtension = project.getExtensions().create("hydra", HydraPluginExtension.class);
         project.afterEvaluate(p -> {
             if(hydraExtension.isBalanceThreads()) {
