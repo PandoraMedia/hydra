@@ -29,6 +29,8 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +60,12 @@ public class HydraClient {
             urlBuilder.port(config.getRemotePort());
         }
 
-        OkHttpClient client = new OkHttpClient.Builder().readTimeout(config.getClientTimeout(), TimeUnit.MILLISECONDS).build();
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder().readTimeout(config.getClientTimeout(), TimeUnit.MILLISECONDS);
+        Proxy proxy = createProxyIfSpecified();
+        if (proxy !=  null) {
+            clientBuilder.proxy(proxy);
+        }
+        OkHttpClient client = clientBuilder.build();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(urlBuilder.build())
                 .addConverterFactory(GsonConverterFactory.create(new Gson()))
@@ -66,6 +73,29 @@ public class HydraClient {
                 .build();
 
         return retrofit.create(HydraApi.class);
+    }
+
+    /**
+     * Creates a Proxy object if the appropriate System properties were specified at JVM startup.
+     * The Java standard for proxy usage seems to be to pass -Dhttp.proxyPort and -Dhttp.proxyHost as args to the JVM.
+     *
+     * @return Proxy object if one could be created from the specified system properties; otherwise null
+     */
+    static Proxy createProxyIfSpecified() {
+        String proxyHost = System.getProperty("http.proxyHost");
+        if (proxyHost == null || proxyHost.isEmpty()) {
+            System.out.println("Invalid http.proxyHost specified; not enabling proxy.");
+            return null;
+        }
+        String proxyPortString = System.getProperty("http.proxyPort");
+        try {
+            int proxyPort = Integer.parseInt(proxyPortString);
+            return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+        }
+        catch (NumberFormatException e) {
+            System.out.println("Invalid http.proxyPort specified; not enabling a proxy");
+            return null;
+        }
     }
 
     /**
