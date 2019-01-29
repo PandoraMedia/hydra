@@ -83,8 +83,13 @@ public class HydraClient {
      */
     static Proxy createProxyIfSpecified() {
         String proxyHost = System.getProperty("http.proxyHost");
-        if (proxyHost == null || proxyHost.isEmpty()) {
-            System.out.println("Invalid http.proxyHost specified; not enabling proxy.");
+        if (proxyHost == null) {
+            // No host specified - not an error; just an indication we don't want to use a proxy
+            return null;
+        }
+        if (proxyHost.isEmpty()) {
+            // Host specified as empty string - this is an error
+            System.out.println("http.proxyHost is empty; not enabling proxy.");
             return null;
         }
         String proxyPortString = System.getProperty("http.proxyPort");
