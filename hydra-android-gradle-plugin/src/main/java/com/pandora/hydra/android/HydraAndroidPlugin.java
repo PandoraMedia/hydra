@@ -45,28 +45,23 @@ public class HydraAndroidPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        if (project.getSubprojects().isEmpty()) {
-            project.getLogger().info("Applying to leaf project: " + project.getName());
-            HydraPluginExtension hydraExtension = project.getExtensions().create("hydra", HydraPluginExtension.class);
-            project.afterEvaluate(p -> {
-                if(hydraExtension.isBalanceThreads()) {
-                    project.getLogger().info("Hydra Android doesn't support thread balancing. Ignoring setting");
-                    hydraExtension.setBalanceThreads(false);
-                }
+        project.getLogger().info("Applying to project: " + project.getName());
+        HydraPluginExtension hydraExtension = project.getExtensions().create("hydra", HydraPluginExtension.class);
+        project.afterEvaluate(p -> {
+            if(hydraExtension.isBalanceThreads()) {
+                project.getLogger().info("Hydra Android doesn't support thread balancing. Ignoring setting");
+                hydraExtension.setBalanceThreads(false);
+            }
 
-                BalancedTestFactory<AndroidBalancedTest, AndroidUnitTest> factory = new BalancedTestFactory<>(AndroidBalancedTest.class,
-                        AndroidUnitTest.class,
-                        (balancedTest, originalTest) -> {
-                            balancedTest.setMergedManifest(originalTest.getMergedManifest());
-                            balancedTest.setResCollection(originalTest.getResCollection());
-                            balancedTest.setSdkPlatformDirPath(originalTest.getSdkPlatformDirPath());
-                        });
-                factory.createBalancedTest(p, hydraExtension);
-            });
-        } else {
-            project.getLogger().lifecycle("###########Pandora Hydra plugin should be applied at Android application leaf project level, which should not have any sub projects. Please use Hydra core plugin for library projects or tree of projects");
-            throw new RuntimeException("Pandora Hydra plugin should be applied at Android application leaf projects level, which should not have any sub projects");
-        }
+            BalancedTestFactory<AndroidBalancedTest, AndroidUnitTest> factory = new BalancedTestFactory<>(AndroidBalancedTest.class,
+                    AndroidUnitTest.class,
+                    (balancedTest, originalTest) -> {
+                        balancedTest.setMergedManifest(originalTest.getMergedManifest());
+                        balancedTest.setResCollection(originalTest.getResCollection());
+                        balancedTest.setSdkPlatformDirPath(originalTest.getSdkPlatformDirPath());
+                    });
+            factory.createBalancedTest(p, hydraExtension, false);
+        });
     }
 
 }

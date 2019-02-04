@@ -36,7 +36,7 @@ public class BalancedTestFactory<T extends Test, U extends Test> {
         this.extraConfigurer = extraConfigurer;
     }
 
-    public void createBalancedTest(Project project, HydraPluginExtension hydraExtension) {
+    public void createBalancedTest(Project project, HydraPluginExtension hydraExtension, boolean recursively) {
 
         Set<String> balancedTests = hydraExtension.getBalancedTests();
         if(balancedTests == null ||  balancedTests.isEmpty()) {
@@ -45,7 +45,7 @@ public class BalancedTestFactory<T extends Test, U extends Test> {
 
         List<U> testTasks = new ArrayList<>();
         for (String balancedTest : balancedTests) {
-            Set<Task> tasksByName = project.getTasksByName(balancedTest, true);
+            Set<Task> tasksByName = project.getTasksByName(balancedTest, recursively);
             tasksByName.forEach(t -> testTasks.add(verifyAndCastToTest(t, originalTestType)));
         }
 
