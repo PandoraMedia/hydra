@@ -4,7 +4,7 @@ If you would like to contribute code you can do so through GitHub by forking the
 
 ## License
 
-PLease include following header to any code you contribute. This also means you accept terms andconditions of this license
+Please include following header to any code you contribute. This also means you accept terms and conditions of this license
 
 ```
 /*
