@@ -11,3 +11,8 @@
 ## 1.7.1
 
 * Fixed bug with Android plugin not resetting JVM properties on balanced test tasks
+
+## 1.7.2
+
+* Added support for HTTP/HTTPS proxies
+* Plugin can now be applied to Android projects with submodules
