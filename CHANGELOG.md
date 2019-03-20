@@ -16,3 +16,8 @@
 
 * Added support for HTTP/HTTPS proxies
 * Plugin can now be applied to Android projects with submodules
+
+## 1.7.3
+
+* Bump AGP version to 3.3.1
+* Correctly setting variant names
