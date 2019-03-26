@@ -56,7 +56,7 @@ public class BalancedTestFactory<T extends Test, U extends Test> {
             return new HydraClient(configuration);
         };
 
-        LazyTestExcluder lazyExcluder = new LazyTestExcluder(projectName, clientSupplier);
+        LazyTestExcluder lazyExcluder = new LazyTestExcluder(projectName, clientSupplier, project);
 
         for (U originalTest : testTasks) {
             T balancedTest = project.getTasks()

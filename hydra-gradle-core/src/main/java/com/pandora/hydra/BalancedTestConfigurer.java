@@ -55,6 +55,7 @@ public class BalancedTestConfigurer<T extends Test, U extends Test> implements A
         balancedTest.setDependsOn(originalTest.getDependsOn());
         balancedTest.setClasspath(originalTest.getClasspath());
         balancedTest.setJvmArgs(originalTest.getJvmArgs());
+        balancedTest.setForkEvery(originalTest.getForkEvery());
 
         TestLoggingContainer originalLoggingContainer = originalTest.getTestLogging();
         balancedTest.testLogging(testLoggingContainer -> copyProperties(testLoggingContainer, originalLoggingContainer));

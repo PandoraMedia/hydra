@@ -2,11 +2,13 @@ package com.pandora.hydra;
 
 import com.pandora.hydra.client.HydraClient;
 import org.gradle.api.GradleException;
+import org.gradle.api.Project;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.specs.Spec;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Objects;
@@ -21,12 +23,14 @@ public class LazyTestExcluder implements Spec<FileTreeElement> {
 
     private final Supplier<HydraClient> hydraClient;
     private final String projectName;
+    private final Project project;
 
     private volatile Set<String> blacklist;
 
-    public LazyTestExcluder(String projectName, Supplier<HydraClient> hydraClientSupplier) {
+    public LazyTestExcluder(String projectName, Supplier<HydraClient> hydraClientSupplier, Project project) {
         this.hydraClient = hydraClientSupplier;
         this.projectName = projectName;
+        this.project = project;
     }
 
     @Override
@@ -43,6 +47,27 @@ public class LazyTestExcluder implements Spec<FileTreeElement> {
         }
     }
 
+    private void logTestBlackListIfSpecified() {
+        final HydraPluginExtension pluginExtension = project.getExtensions().getByType(HydraPluginExtension.class);
+        if (!pluginExtension.isLogTestExclusions()) {
+            return;
+        }
+
+        String hostname = System.getenv("NODE_NAME");
+        String exclusionsFilename = projectName + '_' + hostname + "_test_exclusions.txt";
+        File exclusionsFile = new File(project.getRootProject().getBuildDir(), "hydra_client/" + exclusionsFilename);
+        exclusionsFile.getParentFile().mkdirs();
+        project.getLogger().log(LogLevel.INFO, "Logging Hydra test exclusions to " + exclusionsFile.getAbsolutePath());
+
+        try (PrintWriter exclusionsWriter = new PrintWriter(new BufferedWriter(new FileWriter(exclusionsFile)))) {
+            for (String testExclusion : blacklist) {
+                exclusionsWriter.println(testExclusion);
+            }
+        } catch (IOException e) {
+            project.getLogger().log(LogLevel.WARN, "Unable to write Hydra test exclusions to " + exclusionsFile.getAbsolutePath(), e);
+        }
+    }
+
     private synchronized void fetchTestExcludesListFromHydraServer() {
         if(blacklist != null) {
             return;
@@ -50,6 +75,7 @@ public class LazyTestExcluder implements Spec<FileTreeElement> {
 
         try {
             blacklist = hydraClient.get().getExcludes();
+            logTestBlackListIfSpecified();
         } catch (IOException e) {
             throw new GradleException("Unable to fetch tests from hydra server for project " + projectName, e);
         }
