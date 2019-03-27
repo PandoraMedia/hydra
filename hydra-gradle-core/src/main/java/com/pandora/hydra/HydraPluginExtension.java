@@ -47,6 +47,12 @@ public class HydraPluginExtension {
      */
     private Set<String> balancedTests;
 
+    /**
+     * Should we dump the list of tests that Hydra server indicated should be skipped on this node?
+     * Useful for debugging.
+     */
+    private boolean logTestExclusions;
+
     public String getHydraServer() {
         return hydraServer;
     }
@@ -101,5 +107,13 @@ public class HydraPluginExtension {
 
     public void setBalancedTests(Set<String> balancedTests) {
         this.balancedTests = balancedTests;
+    }
+
+    public boolean isLogTestExclusions() {
+        return logTestExclusions;
+    }
+
+    public void setLogTestExclusions(boolean logTestExclusions) {
+        this.logTestExclusions = logTestExclusions;
     }
 }
