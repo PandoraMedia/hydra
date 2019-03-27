@@ -27,9 +27,9 @@ public class LazyTestExcluder implements Spec<FileTreeElement> {
 
     private volatile Set<String> blacklist;
 
-    public LazyTestExcluder(String projectName, Supplier<HydraClient> hydraClientSupplier, Project project) {
+    public LazyTestExcluder(Project project, Supplier<HydraClient> hydraClientSupplier) {
         this.hydraClient = hydraClientSupplier;
-        this.projectName = projectName;
+        this.projectName = project.getName();
         this.project = project;
     }
 
@@ -53,7 +53,10 @@ public class LazyTestExcluder implements Spec<FileTreeElement> {
             return;
         }
 
-        String hostname = System.getenv("NODE_NAME");
+        String hostname = pluginExtension.getSlaveName();
+        if (hostname == null || hostname.length() < 1) {
+            hostname = System.getenv("NODE_NAME");
+        }
         String exclusionsFilename = projectName + '_' + hostname + "_test_exclusions.txt";
         File exclusionsFile = new File(project.getRootProject().getBuildDir(), "hydra_client/" + exclusionsFilename);
         exclusionsFile.getParentFile().mkdirs();
