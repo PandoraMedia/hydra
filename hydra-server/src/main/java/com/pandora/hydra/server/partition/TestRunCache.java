@@ -39,7 +39,7 @@ public class TestRunCache {
     private final Cache<String, TestRun> cache;
 
     public TestRunCache(long ttl, TimeUnit timeUnit) {
-        this.cache = CacheBuilder.newBuilder().expireAfterWrite(ttl, timeUnit).build();
+        this.cache = CacheBuilder.newBuilder().expireAfterAccess(ttl, timeUnit).build();
     }
 
     public Optional<TestRun> getCachedTestRun(PartitionRequest request) {
