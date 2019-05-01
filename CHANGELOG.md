@@ -21,3 +21,8 @@
 
 * Bump AGP version to 3.3.1
 * Correctly setting variant names
+
+## 1.7.4
+
+* Added property to enable logging of client side exclusions
+* Updated cache logic
