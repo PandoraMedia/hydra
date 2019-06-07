@@ -140,6 +140,18 @@ public class HydraClient {
         }
     }
 
+    public Set<String> getExcludes(String projectName) throws IOException {
+        String hostList = String.join(",", config.getHostList());
+        Response<Set<String>> response = api.getExcludes(config.getJobName(), config.getSlaveName(),
+                projectName, hostList, config.getBuildTag()).execute();
+
+        if(response.isSuccessful()) {
+            return response.body();
+        } else {
+            throw new IllegalStateException("Failed to retrieve tests partitions: " + response.message());
+        }
+    }
+
     public Set<List<String>> getThreadPartitions(int numThreads) throws IOException {
         String hostList = String.join(",", config.getHostList());
 

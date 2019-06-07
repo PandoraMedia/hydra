@@ -40,6 +40,10 @@ public interface HydraApi {
     Call<Set<String>> getExcludes(@Path("jobName") String jobName, @Path("hostName") String hostName,
                                   @Query("host_list") String hostList, @Query("build_tag") String buildTag);
 
+    @GET("/tests/{jobName}/{hostName}/{projectName}/excludes")
+    Call<Set<String>> getExcludes(@Path("jobName") String jobName, @Path("hostName") String hostName, @Path("projectName") String projectName,
+                                  @Query("host_list") String hostList, @Query("build_tag") String buildTag);
+
     @GET("/tests/{jobName}/{hostName}/threads")
     Call<Set<List<String>>> getThreadPartitions(@Path("jobName") String jobName, @Path("hostName") String hostName,
                                                 @Query("host_list") String hostList, @Query("build_tag") String buildTag,
