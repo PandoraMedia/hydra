@@ -56,6 +56,13 @@ public class PartitionService implements Partitioner {
     }
 
     @Override
+	public Set<String> getTestBlacklist(PartitionRequest partitionRequest, String projectName) {
+		LOG.info("getTestBlacklist " + partitionRequest.getBuildTag() + ", " + partitionRequest.getHostName());
+		TestRun testRun = getOrComputeTestRun(partitionRequest);
+		return buildTestBlacklist(testRun, partitionRequest.getHostName(), projectName);
+	}
+
+	@Override
     public Set<String> getTestBlacklist(PartitionRequest partitionRequest) {
         TestRun testRun = getOrComputeTestRun(partitionRequest);
         return buildTestBlacklist(testRun, partitionRequest.getHostName());
@@ -166,6 +173,13 @@ public class PartitionService implements Partitioner {
                 .collect(Collectors.toSet());
     }
 
+	private Set<String> buildTestBlacklist(TestRun testRun, String forHost, String forProject) {
+		return testRun.getPartitions().stream()
+				.filter(entry -> !entry.getHostName().equals(forHost))
+				.map(partition -> partition.getAllTestNames(forProject))
+				.flatMap(Collection::stream)
+				.collect(Collectors.toSet());
+	}
 
 
     private boolean canRebalance(Set<TestContainer> testContainers) {

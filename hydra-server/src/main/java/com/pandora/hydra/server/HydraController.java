@@ -20,9 +20,9 @@ package com.pandora.hydra.server;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import com.pandora.hydra.common.TestSuite;
-import com.pandora.hydra.server.partition.Partitioner;
 import com.pandora.hydra.server.partition.PartitionRequest;
 import com.pandora.hydra.server.persistence.TestStore;
+import com.pandora.hydra.server.partition.Partitioner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,11 +49,11 @@ public class HydraController {
     private final TestStore testStore;
     private final Partitioner partitioner;
 
-    @Autowired
-    public HydraController(Partitioner partitioner, TestStore store) {
-        this.partitioner = partitioner;
-        this.testStore = store;
-    }
+	@Autowired
+	public HydraController(Partitioner partitioner, TestStore store) {
+		this.partitioner = partitioner;
+		this.testStore = store;
+	}
 
     @RequestMapping(value = "/tests/{build}/runtimes", method = RequestMethod.DELETE)
     void clearRuntimes(@PathVariable String build) {
@@ -62,23 +62,33 @@ public class HydraController {
 
     @RequestMapping(value = "/tests/{build}/{host}/{project}/runtimes", method = RequestMethod.POST)
     void saveTestResults(@PathVariable String build, @PathVariable String project,
-                         @RequestBody List<TestSuite> testTimes, @PathVariable("host") String host) {
+						 @RequestBody List<TestSuite> testTimes, @PathVariable("host") String host) {
         LOG.info(String.format("Received %d test runtimes for build %s on project %s from host %s", testTimes.size(), build, project, host));
         testStore.addTestTimes(project, testTimes, host, build);
     }
 
     @RequestMapping(value = "/tests/{build}/{host}/excludes", method = RequestMethod.GET)
     ResponseEntity<Set<String>> getTestBlacklistForHost(@PathVariable String build, @PathVariable String host, @RequestParam(name = "host_list") String hostList,
-                                                        @RequestParam(name = "build_tag", required = false) String buildTag) {
+														@RequestParam(name = "build_tag", required = false) String buildTag) {
         Set<String> hostNames = getAndValidateHostList(host, hostList);
         LOG.info(String.format("Fetching test black list for host %s running build %s with build tag %s", host, build, buildTag));
         Set<String> exclusionsFor = partitioner.getTestBlacklist(new PartitionRequest(host, build, hostNames, buildTag));
         return ResponseEntity.ok(exclusionsFor);
     }
 
+    @RequestMapping(value = "/tests/{build}/{host}/{project}/excludes", method = RequestMethod.GET)
+    ResponseEntity<Set<String>> getTestBlacklistForHostAndProject(@PathVariable String build, @PathVariable String host, @PathVariable String project,
+                                                                  @RequestParam(name = "host_list") String hostList,
+                                                                  @RequestParam(name = "build_tag", required = false) String buildTag) {
+        Set<String> hostNames = getAndValidateHostList(host, hostList);
+        LOG.info(String.format("Fetching test black list for host %s and project %s running build %s with build tag %s", host, project, build, buildTag));
+        Set<String> exclusionsFor = partitioner.getTestBlacklist(new PartitionRequest(host, build, hostNames, buildTag), project);
+        return ResponseEntity.ok(exclusionsFor);
+    }
+
     @RequestMapping(value = "/tests/{build}/{host}/threads", method = RequestMethod.GET)
     ResponseEntity<Set<Set<String>>> getOptimalThreadGrouping(@PathVariable String build, @PathVariable String host, @RequestParam(name = "host_list") String hostList,
-                                                              @RequestParam(name = "build_tag", required = false) String buildTag, @RequestParam(name = "num_threads") int numThreads) {
+																@RequestParam(name = "build_tag", required = false) String buildTag, @RequestParam(name = "num_threads") int numThreads) {
         Set<String> hostNames = getAndValidateHostList(host, hostList);
         Set<Set<String>> lists = partitioner.getThreadGrouping(new PartitionRequest(host, build, hostNames, buildTag), numThreads);
         return ResponseEntity.ok(lists);

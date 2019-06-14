@@ -18,12 +18,12 @@
 package com.pandora.hydra.server.configuration;
 
 import com.pandora.hydra.server.partition.HostAffinityPartitionStrategy;
+import com.pandora.hydra.server.partition.PartitionRequest;
 import com.pandora.hydra.server.partition.PartitionUtil;
 import com.pandora.hydra.server.partition.PartitioningStrategy;
 import com.pandora.hydra.server.partition.TestContainer;
-import com.pandora.hydra.server.persistence.model.TestTime;
-import com.pandora.hydra.server.partition.PartitionRequest;
 import com.pandora.hydra.server.partition.TestRunCache;
+import com.pandora.hydra.server.persistence.model.TestTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
