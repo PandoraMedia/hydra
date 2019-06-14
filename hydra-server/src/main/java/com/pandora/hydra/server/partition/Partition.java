@@ -54,13 +54,13 @@ public class Partition {
         return testContainer;
     }
 
-	public Set<String> getAllTestNames() {
-		return projectContainers.values()
-								.stream()
-								.map(TestContainer::getClasses)
-								.flatMap(Collection::stream)
-								.collect(Collectors.toSet());
-	}
+    public Set<String> getAllTestNames() {
+        return projectContainers.values()
+                                .stream()
+                                .map(TestContainer::getClasses)
+                                .flatMap(Collection::stream)
+                                .collect(Collectors.toSet());
+    }
 
     public Set<String> getAllTestNames(String projectName) {
         return getTestContainerForProject(projectName).getClasses();
