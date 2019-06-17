@@ -26,3 +26,7 @@
 
 * Added property to enable logging of client side exclusions
 * Updated cache logic
+
+## 1.7.5
+
+* Fixed issue with test results missing when test is moved from one subproject to another (Issue 18)
