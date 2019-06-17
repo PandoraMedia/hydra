@@ -77,7 +77,11 @@ public class LazyTestExcluder implements Spec<FileTreeElement> {
         }
 
         try {
-            blacklist = hydraClient.get().getExcludes();
+            // We're switching to project-specific blacklists, but if you run into problems with this
+            // for some reason, you can switch back to cumulative blacklists by using the following
+            // line instead:
+            // blacklist = hydraClient.get().getExcludes();
+            blacklist = hydraClient.get().getExcludes(projectName);
             logTestBlackListIfSpecified();
         } catch (IOException e) {
             throw new GradleException("Unable to fetch tests from hydra server for project " + projectName, e);

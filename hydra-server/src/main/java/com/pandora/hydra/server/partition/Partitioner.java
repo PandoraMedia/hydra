@@ -34,6 +34,8 @@ public interface Partitioner {
      */
     Set<String> getTestBlacklist(PartitionRequest partitionRequest);
 
+    Set<String> getTestBlacklist(PartitionRequest partitionRequest, String projectName);
+
     /**
      * Calculates an optimal test balancing at the thread level. Long running tests are spread across each thread
      * so that we can ensure that threads will finish at roughly the same time. Note: this only works when using the gradle

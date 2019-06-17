@@ -20,8 +20,8 @@ package com.pandora.hydra.server;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import com.pandora.hydra.common.TestSuite;
-import com.pandora.hydra.server.partition.Partitioner;
 import com.pandora.hydra.server.partition.PartitionRequest;
+import com.pandora.hydra.server.partition.Partitioner;
 import com.pandora.hydra.server.persistence.TestStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,9 +76,19 @@ public class HydraController {
         return ResponseEntity.ok(exclusionsFor);
     }
 
+    @RequestMapping(value = "/tests/{build}/{host}/{project}/excludes", method = RequestMethod.GET)
+    ResponseEntity<Set<String>> getTestBlacklistForHostAndProject(@PathVariable String build, @PathVariable String host, @PathVariable String project,
+                                                                  @RequestParam(name = "host_list") String hostList,
+                                                                  @RequestParam(name = "build_tag", required = false) String buildTag) {
+        Set<String> hostNames = getAndValidateHostList(host, hostList);
+        LOG.info(String.format("Fetching test black list for host %s and project %s running build %s with build tag %s", host, project, build, buildTag));
+        Set<String> exclusionsFor = partitioner.getTestBlacklist(new PartitionRequest(host, build, hostNames, buildTag), project);
+        return ResponseEntity.ok(exclusionsFor);
+    }
+
     @RequestMapping(value = "/tests/{build}/{host}/threads", method = RequestMethod.GET)
     ResponseEntity<Set<Set<String>>> getOptimalThreadGrouping(@PathVariable String build, @PathVariable String host, @RequestParam(name = "host_list") String hostList,
-                                                              @RequestParam(name = "build_tag", required = false) String buildTag, @RequestParam(name = "num_threads") int numThreads) {
+                                                                @RequestParam(name = "build_tag", required = false) String buildTag, @RequestParam(name = "num_threads") int numThreads) {
         Set<String> hostNames = getAndValidateHostList(host, hostList);
         Set<Set<String>> lists = partitioner.getThreadGrouping(new PartitionRequest(host, build, hostNames, buildTag), numThreads);
         return ResponseEntity.ok(lists);
