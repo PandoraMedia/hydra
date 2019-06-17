@@ -174,7 +174,7 @@ public class PartitionService implements Partitioner {
     }
 
     private Set<String> buildTestBlacklist(TestRun testRun, String forHost, String forProject) {
-        return testRun.getPartitions().parallelStream()
+        return testRun.getPartitions().stream()
                 .filter(entry -> !entry.getHostName().equals(forHost))
                 .map(partition -> partition.getAllTestNames(forProject))
                 .flatMap(Collection::stream)
