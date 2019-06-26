@@ -1,3 +1,3 @@
 language: java
 install: true
-script: ./gradlew --stacktrace clean build -PsonatypeUsername= -PsonatypePassword= -x signArchives -x signBootWar
+script: ./gradlew clean build -PsonatypeUsername= -PsonatypePassword= -x signArchives -x signBootWar
