@@ -19,6 +19,8 @@ package com.pandora.hydra.android;
 
 import com.android.build.api.artifact.BuildableArtifact;
 import com.android.build.gradle.tasks.factory.AndroidUnitTest;
+import org.gradle.api.file.Directory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
@@ -34,7 +36,7 @@ public class AndroidBalancedTest extends AndroidUnitTest {
     //Android plugin does not provide setters for these fields
     //so have to add new set of them and implement setters
     private String hSdkPlatformDirPath;
-    private BuildableArtifact hMergedManifest;
+    private Provider<Directory> hMergedManifest;
     private BuildableArtifact hResCollection;
     private BuildableArtifact hAssetsCollection;
 
@@ -65,7 +67,7 @@ public class AndroidBalancedTest extends AndroidUnitTest {
 
     @InputFiles
     @Override
-    public BuildableArtifact getMergedManifest() {
+    public Provider<Directory> getMergedManifest() {
         return hMergedManifest;
     }
 
@@ -73,7 +75,7 @@ public class AndroidBalancedTest extends AndroidUnitTest {
         this.hSdkPlatformDirPath = hSdkPlatformDirPath;
     }
 
-    void setMergedManifest(BuildableArtifact hMergedManifest) {
+    void setMergedManifest(Provider<Directory> hMergedManifest) {
         this.hMergedManifest = hMergedManifest;
     }
 
