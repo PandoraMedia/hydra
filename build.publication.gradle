@@ -69,7 +69,7 @@ subprojects {
 configure([project(':hydra-client'), project(':hydra-common'), project(':hydra-gradle-core'), project('hydra-gradle-plugin'),
            project('hydra-android-gradle-plugin')]) {
     artifacts {
-        archives jar, javadocJar, sourceJar
+        archives javadocJar, sourceJar
     }
     signing {
         sign configurations.archives

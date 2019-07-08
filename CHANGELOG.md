@@ -30,3 +30,7 @@
 ## 1.7.5
 
 * Fixed issue with test results missing when test is moved from one subproject to another (Issue 18)
+
+## 2.0.0
+
+* Switched to AGP v3.4
