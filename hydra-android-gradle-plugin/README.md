@@ -25,7 +25,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.pandora.hydra:hydra-android-gradle-plugin:1.7.+'
+        classpath 'com.pandora.hydra:hydra-android-gradle-plugin:2.0.+'
     }
 }
 
