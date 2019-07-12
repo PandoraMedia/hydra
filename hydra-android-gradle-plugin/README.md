@@ -26,9 +26,8 @@ buildscript {
         google()
     }
     dependencies {
-        // If you are using Android Gradle Plug-in < 3.4, change the below versions to 1.7.5
-        classpath 'com.pandora.hydra:hydra-android-gradle-plugin:2.0.0'
-        classpath "com.pandora.hydra:hydra-gradle-plugin:2.0.0"
+        // If you are using Android Gradle Plug-in < 3.4, change the below version to 1.7.+
+        classpath 'com.pandora.hydra:hydra-android-gradle-plugin:2.0.+'
     }
 }
 ```
@@ -57,6 +56,12 @@ Here is an example for a more complicated project, comprised of one or more app 
 libraries (both Android and Java), each of which contains unit tests that need to be balanced.
 Make the following changes in your _root-level_ build.gradle:
 ```
+dependencies {
+    // If you are using Android Gradle Plug-in < 3.4, change the below versions to 1.7.+
+    classpath 'com.pandora.hydra:hydra-android-gradle-plugin:2.0.+'
+    classpath "com.pandora.hydra:hydra-gradle-plugin:2.0.+"
+}
+
 def hydraClosure = { someProject ->
     configure(someProject) {
         if (it.plugins.findPlugin('com.android.application') != null ||
