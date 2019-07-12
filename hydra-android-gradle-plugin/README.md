@@ -16,7 +16,8 @@ to the entire tree of subprojects.
 - Thread balancing is currently not implemented for Android plugin; `balanceThreads` option is simply ignored.
 
 
-Here is a simple example for a project comprised of a single app module, which in turn contains _all_ the tests:  
+Here is a simple example for a project comprised of a single app module which contains all the tests.
+The following changes should be made to your root-level build.gradle:  
 ```
 buildscript {
     repositories {
@@ -25,12 +26,16 @@ buildscript {
         google()
     }
     dependencies {
+        // If you are using Android Gradle Plug-in < 3.4, change the below version to 1.7.+
         classpath 'com.pandora.hydra:hydra-android-gradle-plugin:2.0.+'
     }
 }
-
+```
+Then make these changes to your app-level build.gradle:
+```
 apply plugin: 'com.android.application'
-//This enables all test tasks to fork as many threads as available CPU sores (2x of actual CPU cores for Intel HyperThreading enabled CPUs)
+// This enables tests to be parallelized across N processes on each machine, where N = # of logical CPU cores.
+// Note that on CPUs which support hyperthreading, this will result in 2x the # of actual CPU cores.
 project.tasks.withType(Test) {
     maxParallelForks = Runtime.runtime.availableProcessors()
 }
@@ -41,43 +46,49 @@ hydra {
 }
 
 android {
-    compileSdkVersion 28
-    defaultConfig {
-        applicationId "com.example.test1"
-        minSdkVersion 15
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
+  // All the usual Android-specific configuration 
+  ...
 }
 
+```
+
+Here is an example for a more complicated project, comprised of one or more app modules that depend on multiple 
+libraries (both Android and Java), each of which contains unit tests that need to be balanced.
+Make the following changes in your _root-level_ build.gradle:
+```
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    // If you are using Android Gradle Plug-in < 3.4, change the below versions to 1.7.+
+    classpath 'com.pandora.hydra:hydra-android-gradle-plugin:2.0.+'
+    classpath "com.pandora.hydra:hydra-gradle-plugin:2.0.+"
 }
-```
 
-Next is a snippet for a more complicated project, comprised of one or more app modules and associated library modules,
-each of which contains unit tests that need to be balanced:
-```
 def hydraClosure = { someProject ->
     configure(someProject) {
-        apply plugin: 'com.pandora.hydra.android'
-        hydra {
-            balancedTests = ['testReleaseUnitTest']
+        if (it.plugins.findPlugin('com.android.application') != null ||
+            it.plugins.findPlugin('com.android.library') != null) {
+            // Use the Android-specific Hydra plug-in for Android apps and libraries...
+            apply plugin: 'com.pandora.hydra.android'
+        }
+        else if (it.plugins.findPlugin('java') != null) {
+            // ...use the 'generic' Hydra plug-in for plain Java projects
+            apply plugin: 'com.pandora.hydra'
+        }
+
+        // Regardless of which plug-in was applied, set Hydra-specific properties here:
+        if (it.hasProperty('hydra')) {
+            hydra {
+                balancedTests = ['testReleaseUnitTest']
+            }            
         }
     }
+}
+
+def unitTestsClosure = {
+    // You can configure arbitrary unit test properties in here, for both Android and Java projects.
+    // Some other examples might include test inclusion/exclusion filters and JVM arguments.
+
+    // Specify max number of processes on each machine.
+    it.maxParallelForks = Runtime.runtime.availableProcessors()
 }
 
 subprojects { nextSubproject ->
@@ -89,24 +100,38 @@ subprojects { nextSubproject ->
         hydraClosure(nextSubproject)
     }
 }
+
+// The following closure will consistently apply test-related configuration to all of your subprojects recursively:
+subprojects { nextSubproject ->
+    plugins.whenPluginAdded { nextPlugin ->
+        switch (nextPlugin.class.name) {
+            case 'com.android.build.gradle.AppPlugin':
+            case 'com.android.build.gradle.LibraryPlugin':
+                hydraClosure(nextSubproject)
+                nextSubproject.android.testOptions.unitTests.all {
+                    unitTestsClosure(it)
+                }
+                break
+            case JavaPlugin.name:
+                hydraClosure(nextSubproject)
+                nextSubproject.test {
+                    unitTestsClosure(it)
+                }
+                break
+        }
+    }
+}
 ```
 
-Please note that you might need to publish plugin jar and its dependencies to your local Nexus/Artifactory or provide it as a flat dir
+If you need to make changes to the plugin, you can test them locally by publishing your modified artifacts to your 
+local Maven repository via:
+```
+./gradlew -PsonatypeUsername=DOESNOTMATTER -PsonatypePassword=DOESNOTMATTER publishM
+```
+After doing so, change the versions of the Hydra plug-ins you specified previously to 2.0.0-SNAPSHOT.
 
 
 ## Configuration
 
-The plugin can be configured inside of a `hydra { }` configuration block.
-
-+ `balancedTests` is an array of tests that will have a balanced counterpart created. The plugin will create a new task for 
-each test is in this list using the naming convention `originalTest_balanced`. The new test task wraps the original and automatically
-handles reading the test blacklist and publishing test results to the hydra server
-
-For convenience it is also possible to fully configure a client in the hydra configuration block. While this can be useful for testing
-you will generally want to include this configuration in your CI build
-
-+ `hydraServer` - uri of the hydra server
-+ `hydraHostList` - list of hosts included in a test run
-+ `jobName` - name of the job (on CI server) executing a test run
-+ `buildTag` - a unique name associated with a given execution of jobName
-+ `slaveName` - the name of the host running the test
+The plugin can be configured inside of a `hydra { }` configuration block. For more details, refer to the Configuration
+section of `../hydra-gradle-plugin/README.md`

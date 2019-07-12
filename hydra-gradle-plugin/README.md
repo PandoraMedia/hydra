@@ -11,7 +11,7 @@ buildscript {
            mavenCentral()
        }
        dependencies {
-           classpath 'com.pandora.hydra:hydra-gradle-plugin:2.0.+'
+           classpath 'com.pandora.hydra:hydra-gradle-plugin:2.0.0'
        }
    }
    
@@ -81,6 +81,9 @@ handles reading the test blacklist and publishing test results to the hydra serv
 This can be useful because Gradle assigns tests to worker threads at test discovery time, and if you have bad luck your slowest tests
 can all be assigned to the same thread. Thread balancing is the most fragile feature in the hydra plugin, and should be disabled if you run
 into any problems
++ `logTestExclusions` is a boolean which defaults to `false`. Setting this to true will create a series of node- and
+project-specific text files, each of which contains the full list of tests that the Hydra server instructed the client
+to skip over. Primarily useful for debugging client/server interactions.
 
 For convenience it is also possible to fully configure a client in the hydra configuration block. While this can be useful for testing
 you will generally want to include this configuration in your CI build
