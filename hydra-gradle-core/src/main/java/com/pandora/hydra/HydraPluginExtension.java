@@ -18,6 +18,7 @@
 package com.pandora.hydra;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Configuration associated with a hydra { } block
@@ -52,6 +53,18 @@ public class HydraPluginExtension {
      * Useful for debugging.
      */
     private boolean logTestExclusions;
+
+    /**
+     * How many times should each network operation be retried on failure? Setting this to a value > 1
+     * can be useful for working around transient network problems.
+     */
+    private int networkRetryCount = 1;
+
+    /**
+     * How many milliseconds should we wait after one failed network operation before making the
+     * next attempt? Only used if networkRetryCount > 1.
+     */
+    private long retryDelayMs = 3000L;
 
     public String getHydraServer() {
         return hydraServer;
@@ -115,5 +128,21 @@ public class HydraPluginExtension {
 
     public void setLogTestExclusions(boolean logTestExclusions) {
         this.logTestExclusions = logTestExclusions;
+    }
+
+    public int getNetworkRetryCount() {
+        return networkRetryCount;
+    }
+
+    public void setNetworkRetryCount(int networkRetryCount) {
+        this.networkRetryCount = networkRetryCount;
+    }
+
+    public long getRetryDelayMs() {
+        return retryDelayMs;
+    }
+
+    public void setRetryDelayMs(long retryDelayMs) {
+        this.retryDelayMs = retryDelayMs;
     }
 }

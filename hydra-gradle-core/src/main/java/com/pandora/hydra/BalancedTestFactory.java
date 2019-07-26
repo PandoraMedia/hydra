@@ -74,11 +74,25 @@ public class BalancedTestFactory<T extends Test, U extends Test> {
 
             Task finalizer = project.getTasks().create(balancedTest.getName() + "_finalizer");
             finalizer.doLast(task -> {
-                try {
-                    clientSupplier.get().postTestRuntimes(new ArrayList<>(testListener.getTests().values()));
-                } catch (IOException e) {
-                    project.getLogger().lifecycle("Problem posting test runtime to hydra server for project " + projectName);
-                    e.printStackTrace();
+                for (int i = 1; i <= hydraExtension.getNetworkRetryCount(); i++) {
+                    try {
+                        clientSupplier.get().postTestRuntimes(new ArrayList<>(testListener.getTests().values()));
+                        break;
+                    } catch (IOException e) {
+                        if (i < hydraExtension.getNetworkRetryCount()) {
+                            project.getLogger().lifecycle("Failed to post test runtimes for " + projectName + "; retrying");
+                            try {
+                                Thread.sleep(hydraExtension.getRetryDelayMs());
+                            }
+                            catch (InterruptedException dontCare) {
+                                // Don't care; just continue with the retry
+                            }
+                        }
+                        else {
+                            project.getLogger().lifecycle("Problem posting test runtimes to hydra server for project " + projectName);
+                            e.printStackTrace();
+                        }
+                    }
                 }
             });
 

@@ -93,6 +93,10 @@ you will generally want to include this configuration in your CI build
 + `jobName` - name of the job (on CI server) executing a test run
 + `buildTag` - a unique name associated with a given execution of jobName
 + `slaveName` - the name of the host running the test
++ `networkRetryCount` - how many times should network requests be attempted? Can be used as a workaround for transient 
+network/server issues. defaults to 1.
++ `retryDelayMs` - how long to wait, in milliseconds, before retrying a network request. Only applicable if 
+networkRetryCount > 1.
 
 ### More on thread balancing 
 

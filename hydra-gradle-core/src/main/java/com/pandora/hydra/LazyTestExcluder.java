@@ -76,15 +76,30 @@ public class LazyTestExcluder implements Spec<FileTreeElement> {
             return;
         }
 
-        try {
-            // We're switching to project-specific blacklists, but if you run into problems with this
-            // for some reason, you can switch back to cumulative blacklists by using the following
-            // line instead:
-            // blacklist = hydraClient.get().getExcludes();
-            blacklist = hydraClient.get().getExcludes(projectName);
-            logTestBlackListIfSpecified();
-        } catch (IOException e) {
-            throw new GradleException("Unable to fetch tests from hydra server for project " + projectName, e);
+        final HydraPluginExtension pluginExtension = project.getExtensions().getByType(HydraPluginExtension.class);
+        for (int i = 1; i <= pluginExtension.getNetworkRetryCount(); i++) {
+            try {
+                // We're switching to project-specific blacklists, but if you run into problems with this
+                // for some reason, you can switch back to cumulative blacklists by using the following
+                // line instead:
+                // blacklist = hydraClient.get().getExcludes();
+                blacklist = hydraClient.get().getExcludes(projectName);
+                logTestBlackListIfSpecified();
+                break;
+            } catch (IOException e) {
+                if (i < pluginExtension.getNetworkRetryCount()) {
+                    project.getLogger().log(LogLevel.INFO, "Failed to fetch blacklist for " + projectName + "; retrying");
+                    try {
+                        Thread.sleep(pluginExtension.getRetryDelayMs());
+                    }
+                    catch (InterruptedException dontCare) {
+                        // Don't care; just continue with the retry
+                    }
+                }
+                else {
+                    throw new GradleException("Unable to fetch tests from hydra server for project " + projectName, e);
+                }
+            }
         }
     }
 
