@@ -28,7 +28,7 @@ Hydra client can be integrated with an existing Gradle task by using the Gradle 
 
 Add the dependency and apply plugin 
 
-```
+```groovy
 buildscript {
     repositories {
         mavenCentral()
@@ -43,7 +43,7 @@ apply plugin: 'com.pandora.hydra'
 
 Configure plugin to run against an existing task
 
-``` 
+```groovy
    task integrationTest(type: Test) {
        minHeapSize = "1g"
        maxHeapSize = "6g"
@@ -94,7 +94,7 @@ At some point, increasing the number of physical hosts in a test cluster won't h
 and balance the load between them using custom a Jenkins pipeline.
 This pipeline is designed for the multi branch pipeline plugin or BranchSource:
 
-```
+```groovy
 //We assume we have two subclusters "jenkins-ut0{1..2}" and "jenkins-ut0{3..4}"
 //Checking whether one root node has more jobs running than the other
 //Please note that root nodes should have 2x executors, as they run root job + 1 stage
