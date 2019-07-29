@@ -18,7 +18,6 @@
 package com.pandora.hydra;
 
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Configuration associated with a hydra { } block
