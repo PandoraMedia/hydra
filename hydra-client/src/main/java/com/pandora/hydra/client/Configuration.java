@@ -38,6 +38,7 @@ public class Configuration {
     static final String ENV_HYDRA_HOSTS = "HYDRA_HOST_LIST";
     static final String ENV_HYDRA_HTTPS = "HYDRA_HTTPS";
     static final String ENV_HYDRA_CLIENT_TIMEOUT = "HYDRA_CLIENT_TIMEOUT";
+    static final String ENV_HYDRA_CLIENT_ATTEMPTS = "HYDRA_CLIENT_ATTEMPTS";
 
     //from jenkins
     static final String ENV_JOB_NAME = "JOB_NAME";
@@ -51,9 +52,10 @@ public class Configuration {
     private final String jobName;
     private final long clientTimeout;
     private final boolean https;
+    private final int clientAttempts;
 
     private Configuration(String remoteHost, Integer remotePort, String slaveName, String jobName,
-                          List<String> hostList, String buildTag, long clientTimeout, boolean https) {
+                          List<String> hostList, String buildTag, long clientTimeout, boolean https, int clientAttempts) {
         this.remoteHost = remoteHost;
         this.remotePort = remotePort;
         this.slaveName = slaveName;
@@ -62,6 +64,7 @@ public class Configuration {
         this.buildTag = buildTag;
         this.clientTimeout = clientTimeout;
         this.https = https;
+        this.clientAttempts = clientAttempts;
     }
 
     public static Configuration newConfigurationFromEnv(Map<String, String> envOverrides) {
@@ -76,6 +79,7 @@ public class Configuration {
         String envBuildTag = env.get(ENV_BUILD_TAG);
         String envTimeout = env.get(ENV_HYDRA_CLIENT_TIMEOUT);
         String envHttps = env.get(ENV_HYDRA_HTTPS);
+        String envRetries = env.get(ENV_HYDRA_CLIENT_ATTEMPTS);
 
         if(envJobName != null && envJobName.contains("/")) {
             envJobName = envJobName.substring(0, envJobName.indexOf("/"));
@@ -93,11 +97,14 @@ public class Configuration {
         String timeoutString = chooseValue(envTimeout, envOverrides.get(ENV_HYDRA_CLIENT_TIMEOUT));
         long clientTimeout = timeoutString != null ? Long.parseLong(timeoutString) : 10_000;
 
+        String retriesString = chooseValue(envRetries, envOverrides.get(ENV_HYDRA_CLIENT_ATTEMPTS));
+        int clientRetries = retriesString != null ? Integer.parseInt(retriesString) : 1;
+
         String httpsString = chooseValue(envHttps, envOverrides.get(ENV_HYDRA_HTTPS));
         boolean https = Boolean.parseBoolean(httpsString);
 
         return new Configuration(parsedHostname, parsedPortNum, slaveName, jobName, parseHostList(hostList), buildTag,
-                clientTimeout, https);
+                clientTimeout, https, clientRetries);
     }
 
     private static String parseRemoteHost(String hostname) {
@@ -170,6 +177,8 @@ public class Configuration {
     public long getClientTimeout() {
         return clientTimeout;
     }
+
+    public int getClientAttempts() { return clientAttempts; }
 
     public boolean isHttps() {
         return https;

@@ -22,7 +22,9 @@ import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.pandora.hydra.common.TestSuite;
 import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -65,6 +67,8 @@ public class HydraClient {
         if (proxy !=  null) {
             clientBuilder.proxy(proxy);
         }
+        clientBuilder.addInterceptor(createRetryInterceptor(config.getClientAttempts()));
+
         OkHttpClient client = clientBuilder.build();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(urlBuilder.build())
@@ -73,6 +77,31 @@ public class HydraClient {
                 .build();
 
         return retrofit.create(HydraApi.class);
+    }
+
+    private Interceptor createRetryInterceptor(int numAttempts) {
+        // This enables us to retry all network operations in a consistent manner.
+        return new Interceptor() {
+            @Override
+            public okhttp3.Response intercept(Chain chain) throws IOException {
+                okhttp3.Response response = null;
+                for (int i = 1; i <= numAttempts; i++) {
+                    Request request = chain.request();
+                    System.out.println("Attempt " + i + "/" + numAttempts + " for " + request.url());
+                    try {
+                        response = chain.proceed(request);
+                        if (response.isSuccessful()) {
+                            break;
+                        } else {
+                            System.out.println("Attempt " + i + " was unsuccessful");
+                        }
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                }
+                return response;
+            }
+        };
     }
 
     /**
