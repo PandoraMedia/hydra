@@ -73,6 +73,8 @@ public class ConfigurationTest {
         assertEquals("jobName", configuration.getJobName());
         assertEquals("buildTag", configuration.getBuildTag());
         assertEquals(500, configuration.getClientTimeout());
+        assertEquals(1, configuration.getClientAttempts());
+
         assertEquals(hosts, configuration.getHostList());
         assertTrue(configuration.isHttps());
         assertNull(configuration.getRemotePort());
@@ -93,6 +95,7 @@ public class ConfigurationTest {
         overrides.put(Configuration.ENV_BUILD_TAG, "otherTag");
         overrides.put(Configuration.ENV_HYDRA_CLIENT_TIMEOUT, "1000");
         overrides.put(Configuration.ENV_HYDRA_HTTPS, "false");
+        overrides.put(Configuration.ENV_HYDRA_CLIENT_ATTEMPTS, "2");
 
         Configuration configuration = Configuration.newConfigurationFromEnv(derp, overrides);
 
@@ -104,6 +107,7 @@ public class ConfigurationTest {
         assertEquals(1000, configuration.getClientTimeout());
         assertEquals(overriddenHosts, configuration.getHostList());
         assertFalse(configuration.isHttps());
+        assertEquals(2, configuration.getClientAttempts());
     }
 
     private Map<String, String> createEnvironmentMap(List<String> hosts) {

@@ -33,16 +33,16 @@ import java.util.stream.IntStream;
  */
 public class Configuration {
 
-    static final String ENV_HOST_NAME = "VM_HOSTNAME";
-    static final String ENV_HYDRA_ADDRESS = "HYDRA_SERVER";
-    static final String ENV_HYDRA_HOSTS = "HYDRA_HOST_LIST";
-    static final String ENV_HYDRA_HTTPS = "HYDRA_HTTPS";
-    static final String ENV_HYDRA_CLIENT_TIMEOUT = "HYDRA_CLIENT_TIMEOUT";
-    static final String ENV_HYDRA_CLIENT_ATTEMPTS = "HYDRA_CLIENT_ATTEMPTS";
+    public static final String ENV_HOST_NAME = "VM_HOSTNAME";
+    public static final String ENV_HYDRA_ADDRESS = "HYDRA_SERVER";
+    public static final String ENV_HYDRA_HOSTS = "HYDRA_HOST_LIST";
+    public static final String ENV_HYDRA_HTTPS = "HYDRA_HTTPS";
+    public static final String ENV_HYDRA_CLIENT_TIMEOUT = "HYDRA_CLIENT_TIMEOUT";
+    public static final String ENV_HYDRA_CLIENT_ATTEMPTS = "HYDRA_CLIENT_ATTEMPTS";
 
     //from jenkins
-    static final String ENV_JOB_NAME = "JOB_NAME";
-    static final String ENV_BUILD_TAG = "BUILD_TAG";
+    public static final String ENV_JOB_NAME = "JOB_NAME";
+    public static final String ENV_BUILD_TAG = "BUILD_TAG";
 
     private final String remoteHost;
     private final Integer remotePort;

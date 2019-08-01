@@ -53,6 +53,16 @@ public class HydraPluginExtension {
      */
     private boolean logTestExclusions;
 
+    /**
+     * How many times (including the initial attempt) should the client attempt network operations before giving up?
+     */
+    private Integer numClientAttempts;
+
+    /**
+     * How long (in milliseconds) should the client wait before giving up on a network request?
+     */
+    private Long clientTimeout;
+
     public String getHydraServer() {
         return hydraServer;
     }
@@ -115,5 +125,21 @@ public class HydraPluginExtension {
 
     public void setLogTestExclusions(boolean logTestExclusions) {
         this.logTestExclusions = logTestExclusions;
+    }
+
+    public Integer getNumClientAttempts() {
+        return numClientAttempts;
+    }
+
+    public void setNumClientAttempts(Integer numClientAttempts) {
+        this.numClientAttempts = numClientAttempts;
+    }
+
+    public Long getClientTimeout() {
+        return clientTimeout;
+    }
+
+    public void setClientTimeout(Long clientTimeout) {
+        this.clientTimeout = clientTimeout;
     }
 }
