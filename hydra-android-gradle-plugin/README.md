@@ -27,7 +27,7 @@ buildscript {
     }
     dependencies {
         // If you are using Android Gradle Plug-in < 3.4, change the below version to 1.7.+
-        classpath 'com.pandora.hydra:hydra-android-gradle-plugin:2.0.+'
+        classpath 'com.pandora.hydra:hydra-android-gradle-plugin:2.1.+'
     }
 }
 ```

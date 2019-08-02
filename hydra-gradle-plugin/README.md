@@ -11,7 +11,7 @@ buildscript {
            mavenCentral()
        }
        dependencies {
-           classpath 'com.pandora.hydra:hydra-gradle-plugin:2.0.0'
+           classpath 'com.pandora.hydra:hydra-gradle-plugin:2.1.+'
        }
    }
    
