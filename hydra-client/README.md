@@ -13,6 +13,7 @@ The `hydra-client` is configured via environment variables:
 - `HYDRA_HOST_LIST` a comma separated list of nodes that will run tests
 - `JOB_NAME` name of CI build (exported by jenkins)
 - `BUILD_TAG` a unique name associated with an individual build (exported by jenkins)
+- `HYDRA_CLIENT_ATTEMPTS` # of times the client should attempt network requests before giving up
  
  ### Direct Usage
  
