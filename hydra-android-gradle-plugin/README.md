@@ -91,16 +91,6 @@ def unitTestsClosure = {
     it.maxParallelForks = Runtime.runtime.availableProcessors()
 }
 
-subprojects { nextSubproject ->
-    plugins.withType(com.android.build.gradle.AppPlugin) {
-        hydraClosure(nextSubproject)
-    }
-
-    plugins.withType(com.android.build.gradle.LibraryPlugin) {
-        hydraClosure(nextSubproject)
-    }
-}
-
 // The following closure will consistently apply test-related configuration to all of your subprojects recursively:
 subprojects { nextSubproject ->
     plugins.whenPluginAdded { nextPlugin ->
