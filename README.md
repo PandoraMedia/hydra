@@ -90,8 +90,9 @@ report.
 ##### Example Jenkins pipeline
 
 The following pipeline code assumes you have a pool of _identical_ machines to run the tests, from which Jenkins will choose
-_N_ via its normal scheduling algorithms. If you instead have a heterogeneous pool of machines, you will be better served by
-the example given below under [Test cluster groups](#Test cluster groups).
+_N_ via its normal scheduling algorithms. If you instead have a heterogeneous pool of machines, or you need more control over
+which group(s) of machines will run the tests, you will be better served by the example given below under 
+[Test cluster groups](#Test cluster groups).
 
 ```groovy
 artifactsToPreserveFromEachNode = '**/TEST-*.xml'
