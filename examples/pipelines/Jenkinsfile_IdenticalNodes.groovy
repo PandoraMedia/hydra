@@ -7,6 +7,8 @@
 // * You have a pool of machines with  _identical_ hardware;
 // * Each of those machines has _exactly_ one executor;
 // * All of these machines share a common label
+// 
+// If any of these assumptions don't apply, you will be better served by the example provided in the root-level README.md.
 
 artifactsToPreserveFromEachNode = '**/TEST-*.xml'
 numNodes = 2
