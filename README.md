@@ -220,6 +220,9 @@ pipeline {
             //Receiving results
             unstash getCurrentNode(pm['base'], pm['baseNodeNumber'])
             unstash getCurrentNode(pm['base'], pm['baseNodeNumber'] + 1)
+            // Due to a longstanding bug in Jenkins JUnit plugin, we need to adjust the timestamps for all test result files.
+            // See here: https://issues.jenkins-ci.org/browse/JENKINS-6268?page=com.atlassian.jira.plugin.system.issuetabpanels%3Aall-tabpanel
+            sh "find . -type f -name 'TEST-*.xml' -exec touch {} \\;"
             //Publishing JUnit results
             junit allowEmptyResults: true, testResults: '**/TEST*.xml'
             //Publishing HTML results
