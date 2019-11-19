@@ -47,26 +47,26 @@ public class AndroidBalancedTest extends AndroidUnitTest {
 
     @InputFiles
     @Optional
-    @Override
+//    @Override
     public BuildableArtifact getResCollection() {
         return this.hResCollection;
     }
 
     @InputFiles
     @Optional
-    @Override
+//    @Override
     public BuildableArtifact getAssetsCollection() {
         return hAssetsCollection;
     }
 
     @Input
-    @Override
+//    @Override
     public String getSdkPlatformDirPath() {
         return hSdkPlatformDirPath;
     }
 
     @InputFiles
-    @Override
+//    @Override
     public Provider<Directory> getMergedManifest() {
         return hMergedManifest;
     }
