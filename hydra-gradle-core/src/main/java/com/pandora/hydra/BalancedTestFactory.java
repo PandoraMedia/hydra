@@ -106,11 +106,13 @@ public class BalancedTestFactory<T extends Test, U extends Test> {
     private static Map<String, String> buildOverrideMap(HydraPluginExtension extension) {
         Map<String, String> overrideMap = new HashMap<>();
 
-        addIfPresent(overrideMap, extension::getHydraServer, "HYDRA_SERVER");
-        addIfPresent(overrideMap, extension::getHydraHostList, "HYDRA_HOST_LIST");
-        addIfPresent(overrideMap, extension::getBuildTag, "BUILD_TAG");
-        addIfPresent(overrideMap, extension::getSlaveName, "VM_HOSTNAME");
-        addIfPresent(overrideMap, extension::getJobName, "JOB_NAME");
+        addIfPresent(overrideMap, extension::getHydraServer, Configuration.ENV_HYDRA_ADDRESS);
+        addIfPresent(overrideMap, extension::getHydraHostList, Configuration.ENV_HYDRA_HOSTS);
+        addIfPresent(overrideMap, extension::getBuildTag, Configuration.ENV_BUILD_TAG);
+        addIfPresent(overrideMap, extension::getSlaveName, Configuration.ENV_HOST_NAME);
+        addIfPresent(overrideMap, extension::getJobName, Configuration.ENV_JOB_NAME);
+        addIfPresent(overrideMap, extension::getNumClientAttempts, Configuration.ENV_HYDRA_CLIENT_ATTEMPTS);
+        addIfPresent(overrideMap, extension::getClientTimeout, Configuration.ENV_HYDRA_CLIENT_TIMEOUT);
 
         return overrideMap;
     }

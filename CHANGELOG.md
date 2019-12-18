@@ -34,3 +34,7 @@
 ## 2.0.0
 
 * Switched to AGP v3.4
+
+## 2.1.0
+
+* Added retry count and client timeout parameters to be able to retry requests to back in case of unstable connection

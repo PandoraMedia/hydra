@@ -11,7 +11,7 @@ buildscript {
            mavenCentral()
        }
        dependencies {
-           classpath 'com.pandora.hydra:hydra-gradle-plugin:2.0.0'
+           classpath 'com.pandora.hydra:hydra-gradle-plugin:2.1.+'
        }
    }
    
@@ -93,6 +93,8 @@ you will generally want to include this configuration in your CI build
 + `jobName` - name of the job (on CI server) executing a test run
 + `buildTag` - a unique name associated with a given execution of jobName
 + `slaveName` - the name of the host running the test
++ `clientTimeout` - how long client should wait (in milliseconds) before giving up on a network request
++ `numClientAttempts` - # of times the client should attempt network requests before giving up completely
 
 ### More on thread balancing 
 

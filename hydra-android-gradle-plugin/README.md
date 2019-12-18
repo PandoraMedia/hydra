@@ -27,7 +27,7 @@ buildscript {
     }
     dependencies {
         // If you are using Android Gradle Plug-in < 3.4, change the below version to 1.7.+
-        classpath 'com.pandora.hydra:hydra-android-gradle-plugin:2.0.+'
+        classpath 'com.pandora.hydra:hydra-android-gradle-plugin:2.1.+'
     }
 }
 ```
@@ -89,16 +89,6 @@ def unitTestsClosure = {
 
     // Specify max number of processes on each machine.
     it.maxParallelForks = Runtime.runtime.availableProcessors()
-}
-
-subprojects { nextSubproject ->
-    plugins.withType(com.android.build.gradle.AppPlugin) {
-        hydraClosure(nextSubproject)
-    }
-
-    plugins.withType(com.android.build.gradle.LibraryPlugin) {
-        hydraClosure(nextSubproject)
-    }
 }
 
 // The following closure will consistently apply test-related configuration to all of your subprojects recursively:
