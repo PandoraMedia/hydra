@@ -53,6 +53,8 @@ public class HydraPluginExtension {
      */
     private boolean logTestExclusions;
 
+    private String exclusionFile;
+
     public String getHydraServer() {
         return hydraServer;
     }
@@ -116,4 +118,12 @@ public class HydraPluginExtension {
     public void setLogTestExclusions(boolean logTestExclusions) {
         this.logTestExclusions = logTestExclusions;
     }
+
+	public String getExclusionFile() {
+		return exclusionFile;
+	}
+
+	public void setExclusionFile(String exclusionFile) {
+		this.exclusionFile = exclusionFile;
+	}
 }
