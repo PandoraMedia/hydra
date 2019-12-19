@@ -8,8 +8,16 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.specs.Spec;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Set;
@@ -24,19 +32,48 @@ public class LazyTestExcluder implements Spec<FileTreeElement> {
     private final Supplier<HydraClient> hydraClient;
     private final String projectName;
     private final Project project;
+    private final Supplier<Set<String>> exclusionSupplier;
 
     private volatile Set<String> blacklist;
 
-    public LazyTestExcluder(Project project, Supplier<HydraClient> hydraClientSupplier) {
+    private LazyTestExcluder(Project project, Supplier<HydraClient> hydraClientSupplier, Supplier<Set<String>> exclusionSupplier) {
         this.hydraClient = hydraClientSupplier;
         this.projectName = project.getName();
         this.project = project;
+
+        if(exclusionSupplier == null) {
+            this.exclusionSupplier = this::fetchTestExcludesListFromHydraServer;
+        } else {
+            this.exclusionSupplier = exclusionSupplier;
+        }
+    }
+
+    public static LazyTestExcluder fromHydraServer(Project project, Supplier<HydraClient> hydraClientSupplier) {
+        return new LazyTestExcluder(project, hydraClientSupplier, null);
+    }
+
+    public static LazyTestExcluder fromExclusionFile(Project project, String pathToExclusionFile) {
+        Supplier<Set<String>> exclusionSupplier = () -> {
+            Path exclusionPath = Paths.get(pathToExclusionFile);
+            try {
+                return new LinkedHashSet<>(Files.readAllLines(exclusionPath));
+            } catch(IOException e) {
+                throw new GradleException("Unable to read exclusions from " + pathToExclusionFile);
+            }
+        };
+
+        return new LazyTestExcluder(project, () -> null, exclusionSupplier);
     }
 
     @Override
     public boolean isSatisfiedBy(FileTreeElement fileTreeElement) {
         if(blacklist == null) {
-            fetchTestExcludesListFromHydraServer();
+            synchronized(this) {
+                if(blacklist == null) {
+                    blacklist = exclusionSupplier.get();
+                    logTestBlackListIfSpecified();
+                }
+            }
         }
         if(fileTreeElement.isDirectory()) {
             return false;
@@ -71,18 +108,13 @@ public class LazyTestExcluder implements Spec<FileTreeElement> {
         }
     }
 
-    private synchronized void fetchTestExcludesListFromHydraServer() {
-        if(blacklist != null) {
-            return;
-        }
-
+    private Set<String> fetchTestExcludesListFromHydraServer() {
         try {
             // We're switching to project-specific blacklists, but if you run into problems with this
             // for some reason, you can switch back to cumulative blacklists by using the following
             // line instead:
             // blacklist = hydraClient.get().getExcludes();
-            blacklist = hydraClient.get().getExcludes(projectName);
-            logTestBlackListIfSpecified();
+            return hydraClient.get().getExcludes(projectName);
         } catch (IOException e) {
             throw new GradleException("Unable to fetch tests from hydra server for project " + projectName, e);
         }

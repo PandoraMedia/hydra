@@ -49,14 +49,22 @@ public class BalancedTestFactory<T extends Test, U extends Test> {
             tasksByName.forEach(t -> testTasks.add(verifyAndCastToTest(t, originalTestType)));
         }
 
-        String projectName = project.getName();
-        //defer creation till a balanced test is actually executed
-        Supplier<HydraClient> clientSupplier = () -> {
-            Configuration configuration = Configuration.newConfigurationFromEnv(buildOverrideMap(hydraExtension));
-            return new HydraClient(configuration);
-        };
+        String hydraExclusionFile = (String) project.getProperties().get("hydra.exclusionFile");
+        final boolean localRun = hydraExclusionFile != null;
 
-        LazyTestExcluder lazyExcluder = new LazyTestExcluder(project, clientSupplier);
+        //defer creation till a balanced test is actually executed
+        final Supplier<HydraClient> clientSupplier;
+        final LazyTestExcluder lazyExcluder;
+        if(localRun) {
+            lazyExcluder = LazyTestExcluder.fromExclusionFile(project, hydraExclusionFile);
+            clientSupplier = () -> null;
+        } else {
+            clientSupplier = () -> {
+                Configuration configuration = Configuration.newConfigurationFromEnv(buildOverrideMap(hydraExtension));
+                return new HydraClient(configuration);
+            };
+            lazyExcluder = LazyTestExcluder.fromHydraServer(project, clientSupplier);
+        }
 
         for (U originalTest : testTasks) {
             T balancedTest = project.getTasks()
@@ -67,23 +75,26 @@ public class BalancedTestFactory<T extends Test, U extends Test> {
             BalancedTestListener testListener = new BalancedTestListener(balancedTest.getProject().getName());
             balancedTest.addTestListener(testListener);
 
-            if(hydraExtension.isBalanceThreads()) {
-                balancedTest.setProperty("balanceThreads", true);
-                balancedTest.setProperty("envOverrides", buildOverrideMap(hydraExtension));
-            }
-
-            Task finalizer = project.getTasks().create(balancedTest.getName() + "_finalizer");
-            finalizer.doLast(task -> {
-                try {
-                    clientSupplier.get().postTestRuntimes(new ArrayList<>(testListener.getTests().values()));
-                } catch (IOException e) {
-                    project.getLogger().lifecycle("Problem posting test runtime to hydra server for project " + projectName);
-                    e.printStackTrace();
+            if(!localRun) {
+                if(hydraExtension.isBalanceThreads()) {
+                    balancedTest.setProperty("balanceThreads", true);
+                    balancedTest.setProperty("envOverrides", buildOverrideMap(hydraExtension));
                 }
-            });
 
-            //use finalizedBy so that it always runs regardless of whether tests fail or not
-            balancedTest.finalizedBy(finalizer);
+                Task finalizer = project.getTasks().create(balancedTest.getName() + "_finalizer");
+                finalizer.doLast(task -> {
+                    try {
+                        clientSupplier.get().postTestRuntimes(new ArrayList<>(testListener.getTests().values()));
+                    } catch(IOException e) {
+                        project.getLogger()
+                               .lifecycle("Problem posting test runtime to hydra server for project " + project.getName());
+                        e.printStackTrace();
+                    }
+                });
+
+                //use finalizedBy so that it always runs regardless of whether tests fail or not
+                balancedTest.finalizedBy(finalizer);
+            }
         }
     }
 
