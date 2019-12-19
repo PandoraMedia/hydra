@@ -38,3 +38,11 @@
 ## 2.1.0
 
 * Added retry count and client timeout parameters to be able to retry requests to back in case of unstable connection
+
+## 2.1.1
+
+* Plugin now allows specifying a file that contains all of the exclusions to use for a test run. This can be useful when trying to reproduce test failures that only occur when running on the server.
+
+## 2.1.2
+
+* Rolling back some of the changes
