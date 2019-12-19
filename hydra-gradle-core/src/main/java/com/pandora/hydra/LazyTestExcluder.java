@@ -32,49 +32,49 @@ public class LazyTestExcluder implements Spec<FileTreeElement> {
     private final Supplier<HydraClient> hydraClient;
     private final String projectName;
     private final Project project;
-	private final Supplier<Set<String>> exclusionSupplier;
+    private final Supplier<Set<String>> exclusionSupplier;
 
     private volatile Set<String> blacklist;
 
     private LazyTestExcluder(Project project, Supplier<HydraClient> hydraClientSupplier, Supplier<Set<String>> exclusionSupplier) {
-		this.hydraClient = hydraClientSupplier;
-		this.projectName = project.getName();
-		this.project = project;
+        this.hydraClient = hydraClientSupplier;
+        this.projectName = project.getName();
+        this.project = project;
 
-		if(exclusionSupplier == null) {
-			this.exclusionSupplier = this::fetchTestExcludesListFromHydraServer;
-		} else {
-			this.exclusionSupplier = exclusionSupplier;
-		}
-	}
+        if(exclusionSupplier == null) {
+            this.exclusionSupplier = this::fetchTestExcludesListFromHydraServer;
+        } else {
+            this.exclusionSupplier = exclusionSupplier;
+        }
+    }
 
-	public static LazyTestExcluder fromHydraServer(Project project, Supplier<HydraClient> hydraClientSupplier) {
-		return new LazyTestExcluder(project, hydraClientSupplier, null);
-	}
+    public static LazyTestExcluder fromHydraServer(Project project, Supplier<HydraClient> hydraClientSupplier) {
+        return new LazyTestExcluder(project, hydraClientSupplier, null);
+    }
 
-	public static LazyTestExcluder fromExclusionFile(Project project, String pathToExclusionFile) {
-		Supplier<Set<String>> exclusionSupplier = () -> {
-			Path exclusionPath = Paths.get(pathToExclusionFile);
-			try {
-				return new LinkedHashSet<>(Files.readAllLines(exclusionPath));
-			} catch(IOException e) {
-				throw new GradleException("Unable to read exclusions from " + pathToExclusionFile);
-			}
-		};
+    public static LazyTestExcluder fromExclusionFile(Project project, String pathToExclusionFile) {
+        Supplier<Set<String>> exclusionSupplier = () -> {
+            Path exclusionPath = Paths.get(pathToExclusionFile);
+            try {
+                return new LinkedHashSet<>(Files.readAllLines(exclusionPath));
+            } catch(IOException e) {
+                throw new GradleException("Unable to read exclusions from " + pathToExclusionFile);
+            }
+        };
 
-		return new LazyTestExcluder(project, () -> null, exclusionSupplier);
-	}
+        return new LazyTestExcluder(project, () -> null, exclusionSupplier);
+    }
 
     @Override
     public boolean isSatisfiedBy(FileTreeElement fileTreeElement) {
         if(blacklist == null) {
             synchronized(this) {
-				if(blacklist == null) {
-					blacklist = exclusionSupplier.get();
-					logTestBlackListIfSpecified();
-				}
-			}
-		}
+                if(blacklist == null) {
+                    blacklist = exclusionSupplier.get();
+                    logTestBlackListIfSpecified();
+                }
+            }
+        }
         if(fileTreeElement.isDirectory()) {
             return false;
         } else {

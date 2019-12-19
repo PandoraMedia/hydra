@@ -127,7 +127,7 @@ public class HydraPluginExtension {
         this.logTestExclusions = logTestExclusions;
     }
 
-	public Integer getNumClientAttempts() {
+    public Integer getNumClientAttempts() {
         return numClientAttempts;
     }
 
