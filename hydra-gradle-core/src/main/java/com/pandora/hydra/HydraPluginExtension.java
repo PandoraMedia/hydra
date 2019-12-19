@@ -53,8 +53,6 @@ public class HydraPluginExtension {
      */
     private boolean logTestExclusions;
 
-    private String exclusionFile;
-
     /**
      * How many times (including the initial attempt) should the client attempt network operations before giving up?
      */
@@ -128,14 +126,6 @@ public class HydraPluginExtension {
     public void setLogTestExclusions(boolean logTestExclusions) {
         this.logTestExclusions = logTestExclusions;
     }
-
-	public String getExclusionFile() {
-		return exclusionFile;
-	}
-
-	public void setExclusionFile(String exclusionFile) {
-		this.exclusionFile = exclusionFile;
-	}
 
 	public Integer getNumClientAttempts() {
         return numClientAttempts;

@@ -49,13 +49,14 @@ public class BalancedTestFactory<T extends Test, U extends Test> {
             tasksByName.forEach(t -> testTasks.add(verifyAndCastToTest(t, originalTestType)));
         }
 
-		final boolean localRun = hydraExtension.getExclusionFile() != null;
+		String hydraExclusionFile = (String) project.getProperties().get("hydra.exclusionFile");
+		final boolean localRun = hydraExclusionFile != null;
 
 		//defer creation till a balanced test is actually executed
 		final Supplier<HydraClient> clientSupplier;
 		final LazyTestExcluder lazyExcluder;
         if(localRun) {
-        	lazyExcluder = LazyTestExcluder.fromExclusionFile(project, hydraExtension.getExclusionFile());
+        	lazyExcluder = LazyTestExcluder.fromExclusionFile(project, hydraExclusionFile);
         	clientSupplier = () -> null;
 		} else {
 			clientSupplier = () -> {
