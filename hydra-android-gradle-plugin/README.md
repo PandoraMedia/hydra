@@ -125,3 +125,22 @@ After doing so, change the versions of the Hydra plug-ins you specified previous
 
 The plugin can be configured inside of a `hydra { }` configuration block. For more details, refer to the Configuration
 section of `../hydra-gradle-plugin/README.md`
+
+## Running locally
+
+It's possible to run a subset of tests independent of a hydra server. First, update your hydra configuration to log excludes
+
+```
+hydra {
+    logTestExclusions true
+}
+```
+ 
+this setting will cause each node to write its test exclusions to a file. This file can then be used locally to reproduce a 
+given nodes test group
+
+```
+./gradlew integrationTest_balanced -Phydra.exclusionFile=pathToExcludesFile
+```
+ 
+Reproducing a test group locally can help with debugging errors related to test run order.  
