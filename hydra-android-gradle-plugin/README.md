@@ -7,11 +7,13 @@ to the hydra-server.
 ##### Here are some caveats of this plugin:
 
 - The following table lists which version of the Hydra Android Plug-in is required for each verison of the Android Gradle Plugin (AGP).
+
 | AGP Version | Hydra Android Version |
 | ----------- | --------------------- |
 | 3.5+        | 3.x                   |
 | 3.4         | 2.x                   |
 | 3.3         | 1.x                   |
+
 - Pandora Hydra Android plugin must be applied after Android Application/Library plugin, as it needs to decorate tasks created by the aforementioned plugins.
 - Pandora Hydra plugin should be applied _directly_ to each module containing tests you wish to balance; it will fail if subprojects are identified. 
 This is in contrast to the Hydra Core plugin, which can simply be applied at the root level, and will then be automatically applied
