@@ -53,13 +53,10 @@ public class HydraAndroidPlugin implements Plugin<Project> {
                 hydraExtension.setBalanceThreads(false);
             }
 
-            BalancedTestFactory<AndroidBalancedTest, AndroidUnitTest> factory = new BalancedTestFactory<>(AndroidBalancedTest.class,
+            BalancedTestFactory<AndroidUnitTest, AndroidUnitTest> factory = new BalancedTestFactory<>(AndroidUnitTest.class,
                     AndroidUnitTest.class,
                     (balancedTest, originalTest) -> {
-//                        balancedTest.setMergedManifest(originalTest.getTestConfigInputs().getMergedManifest());
-//                        balancedTest.setResCollection(originalTest.getTestConfigInputs().getMergedResources());
-////                        balancedTest.setSdkPlatformDirPath(originalTest.getSdkPlatformDirPath());
-//                        balancedTest.setVariantName(originalTest.getVariantName());
+                        balancedTest.setVariantName(originalTest.getVariantName());
                     });
             factory.createBalancedTest(p, hydraExtension, false);
         });
