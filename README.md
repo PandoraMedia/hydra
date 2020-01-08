@@ -10,8 +10,7 @@ Hydra for one of our integration test suites that relies heavily on test databas
 
 ## Getting Started
 
-In order to run tests on a cluster you will need Hydra and a CI environment (our examples are for Jenkins, but a similar approach 
-should work for different environments).
+In order to run tests on a cluster you will need Hydra and a CI environment (our examples are for Jenkins, but a similar approach should work for different environments).
 
 ## Hydra Setup
 
