@@ -6,7 +6,7 @@ to the hydra-server.
 
 ##### Here are some caveats of this plugin:
 
-- The following table lists which version of the Hydra Android Plug-in is required for each verison of the Android Gradle Plugin (AGP).
+- The following table lists which version of the Hydra Android Plug-in is required for each version of the Android Gradle Plugin (AGP).
 
 | AGP Version | Hydra Android Version |
 | ----------- | --------------------- |
