@@ -1,11 +1,12 @@
 repositories {
     google()
+    jcenter()
 }
 dependencies {
     compile project(':hydra-gradle-core')
 
     compile 'com.google.guava:guava:23.6-jre'
-    compile 'com.android.tools.build:gradle:3.4.1'
+    compile 'com.android.tools.build:gradle:3.5.2'
     compile 'commons-beanutils:commons-beanutils:1.9.3'
 
     testCompile 'junit:junit:4.12'
